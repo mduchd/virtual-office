@@ -52,6 +52,8 @@ export interface ServerConfig {
   updateCheck: boolean;
   /** Observa as sessões do Codex (sources/codex/); HABBLAUD_CODEX=0 desliga. */
   codex: boolean;
+  /** Observa as sessões do Antigravity (sources/antigravity/); HABBLAUD_ANTIGRAVITY=0 desliga. */
+  antigravity: boolean;
   /** Segunda porta, com login, para o celular na rede local (http/remote.ts); ausente = desligada. */
   remote?: RemoteConfig;
   /** Por que o acesso remoto ficou desligado quando as variáveis estão incompletas. */
@@ -149,11 +151,31 @@ export function messagesOffReason(env: NodeJS.ProcessEnv, host: string, inDocker
   return terminal ? tr('mesma trava do terminal: {0}', [terminal]) : undefined;
 }
 
+export function loadDotEnv(rootDir: string, env: NodeJS.ProcessEnv): void {
+  const envFile = join(rootDir, '.env');
+  if (!existsSync(envFile)) return;
+  try {
+    const content = readFileSync(envFile, 'utf8');
+    for (const line of content.split(/\r?\n/)) {
+      const m = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/.exec(line);
+      if (m) {
+        const key = m[1];
+        if (env[key] === undefined) {
+          env[key] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+        }
+      }
+    }
+  } catch {
+    // Ignora erro de leitura
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] = process.argv): ServerConfig {
   const home = env.HOME || homedir();
   const inDocker = detectDocker(env);
   const port = Number.parseInt(env.HABBLAUD_PORT ?? '', 10);
   const rootDir = findRoot(dirname(fileURLToPath(import.meta.url)));
+  loadDotEnv(rootDir, env);
   const host = env.HABBLAUD_HOST?.trim() || '127.0.0.1';
   const pkg = readPackage(rootDir);
   const remote = parseRemoteConfig(env, inDocker);
@@ -176,6 +198,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] 
     repo: pkg.repo,
     updateCheck: !env.HABBLAUD_UPDATE_CHECK?.trim() || isTruthy(env.HABBLAUD_UPDATE_CHECK),
     codex: !env.HABBLAUD_CODEX?.trim() || isTruthy(env.HABBLAUD_CODEX),
+    antigravity: !env.HABBLAUD_ANTIGRAVITY?.trim() || isTruthy(env.HABBLAUD_ANTIGRAVITY),
     remote: remote.config,
     remoteWarning: remote.warning,
   };

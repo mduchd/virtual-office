@@ -321,8 +321,490 @@ function totemSprite(): PropSprite {
   return { canvas: c, ax: 7, ay: 32 };
 }
 
+/** Đài phun nước hoàng gia cỡ lớn (Grand Fountain) với 3 tầng nước tràn và cột phun bọt trắng */
+function fountainSprite(seed: number): PropSprite {
+  const [c, ctx] = makeCanvas(52, 38);
+  shadowEllipse(ctx, 26, 33, 24, 5, 0.28);
+  const out = '#2b3342';
+  const stoneDk = '#525d6e';
+  const stoneMid = '#788596';
+  const stoneLit = '#b2becd';
+  const stoneHi = '#e4eaf2';
+
+  // 1. Bể đá hoa cương lớn bên ngoài (hình oval đáy)
+  ctx.fillStyle = out;
+  ctx.beginPath();
+  ctx.ellipse(26, 25, 24, 10.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = stoneMid;
+  ctx.beginPath();
+  ctx.ellipse(26, 24, 23, 9.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bờ viền đá hướng sáng phía trên-trái
+  ctx.fillStyle = stoneLit;
+  ctx.beginPath();
+  ctx.ellipse(25, 23, 22, 9, 0, Math.PI * 0.85, Math.PI * 1.95);
+  ctx.fill();
+
+  ctx.fillStyle = stoneHi;
+  ctx.beginPath();
+  ctx.ellipse(25, 22.5, 21, 8.2, 0, Math.PI * 1.05, Math.PI * 1.75);
+  ctx.fill();
+
+  // 2. Lòng hồ nước trong xanh
+  ctx.fillStyle = '#144c70';
+  ctx.beginPath();
+  ctx.ellipse(26, 24, 19, 7.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#2178ad';
+  ctx.beginPath();
+  ctx.ellipse(25.5, 23.5, 17, 6.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mặt nước phản quang & các gợn sóng lăn tăn
+  ctx.fillStyle = '#4fa8de';
+  ctx.fillRect(14, 22, 7, 1);
+  ctx.fillRect(31, 24, 8, 1);
+  ctx.fillRect(20, 27, 12, 1);
+  ctx.fillStyle = '#9fe0fc';
+  ctx.fillRect(16, 23, 4, 1);
+  ctx.fillRect(33, 25, 4, 1);
+
+  // 3. Trụ đài phun nước trung tâm (Tầng 1)
+  ctx.fillStyle = out;
+  ctx.fillRect(21, 17, 10, 8);
+  ctx.fillStyle = stoneDk;
+  ctx.fillRect(22, 17, 8, 8);
+  ctx.fillStyle = stoneMid;
+  ctx.fillRect(22, 17, 6, 8);
+  ctx.fillStyle = stoneHi;
+  ctx.fillRect(22, 17, 2, 8);
+
+  // Đĩa nước tầng giữa (Tầng 2)
+  ctx.fillStyle = out;
+  ctx.fillRect(16, 15, 20, 4);
+  ctx.fillStyle = stoneLit;
+  ctx.fillRect(17, 15, 18, 3);
+  ctx.fillStyle = stoneHi;
+  ctx.fillRect(17, 15, 6, 1);
+
+  // Dòng nước tràn đổ từ tầng giữa xuống hồ
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fillRect(18, 18, 2, 6);
+  ctx.fillRect(32, 18, 2, 6);
+  ctx.fillStyle = '#9fe0fc';
+  ctx.fillRect(17, 19, 1, 5);
+  ctx.fillRect(34, 19, 1, 5);
+
+  // Trụ tầng trên (Tầng 3)
+  ctx.fillStyle = stoneDk;
+  ctx.fillRect(23, 11, 6, 5);
+  ctx.fillStyle = stoneHi;
+  ctx.fillRect(23, 11, 2, 5);
+
+  // Chén phun nước đỉnh
+  ctx.fillStyle = out;
+  ctx.fillRect(20, 10, 12, 3);
+  ctx.fillStyle = stoneLit;
+  ctx.fillRect(21, 10, 10, 2);
+  ctx.fillStyle = stoneHi;
+  ctx.fillRect(21, 10, 3, 1);
+
+  // 4. Cột nước phun bọt trắng xóa & tia nước bắn lên cao
+  ctx.fillStyle = '#9fe0fc';
+  ctx.fillRect(25, 3, 2, 8);
+  ctx.fillRect(24, 5, 4, 4);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(25, 2, 2, 4);
+  ctx.fillRect(23, 4, 1, 3);
+  ctx.fillRect(28, 4, 1, 3);
+  ctx.fillRect(22, 7, 1, 2);
+  ctx.fillRect(29, 7, 1, 2);
+  // Bọt nước rơi vương vãi
+  ctx.fillRect(21, 12, 1, 1);
+  ctx.fillRect(30, 12, 1, 1);
+  ctx.fillRect(19, 16, 1, 1);
+  ctx.fillRect(32, 16, 1, 1);
+
+  return { canvas: c, ax: 26, ay: 33 };
+}
+
+/** Nhà chờ xe buýt hiện đại (Modern Bus Shelter) có mái kính và bản đồ lộ trình */
+function busShelterSprite(seed: number): PropSprite {
+  const [c, ctx] = makeCanvas(38, 32);
+  shadowEllipse(ctx, 19, 29, 17, 3, 0.28);
+  const steel = '#2a3342';
+  const steelLit = '#4b5768';
+
+  // Khung cột kim loại phía sau và bên hông
+  ctx.fillStyle = steel;
+  ctx.fillRect(4, 8, 2, 21);
+  ctx.fillRect(28, 8, 2, 21);
+
+  // Vách kính phía sau trong suốt
+  ctx.fillStyle = 'rgba(215, 235, 248, 0.45)';
+  ctx.fillRect(5, 10, 24, 18);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.fillRect(6, 10, 2, 18);
+
+  // Bảng áp phích bản đồ xe buýt (Transit Route Map)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(8, 12, 8, 10);
+  ctx.fillStyle = '#e74c3c'; // Tuyến đỏ
+  ctx.fillRect(9, 14, 6, 1);
+  ctx.fillStyle = '#3498db'; // Tuyến xanh
+  ctx.fillRect(9, 17, 6, 1);
+  ctx.fillStyle = '#f1c40f'; // Tuyến vàng
+  ctx.fillRect(12, 13, 1, 7);
+
+  // Ghế ngồi bằng gỗ dài bên trong nhà chờ
+  ctx.fillStyle = '#54361c';
+  ctx.fillRect(17, 21, 11, 4);
+  ctx.fillStyle = '#8b5a30';
+  ctx.fillRect(17, 20, 11, 2);
+  ctx.fillStyle = '#b67a44';
+  ctx.fillRect(17, 20, 11, 1);
+  // Chân ghế sắt
+  ctx.fillStyle = steel;
+  ctx.fillRect(18, 24, 1, 5);
+  ctx.fillRect(26, 24, 1, 5);
+
+  // Mái che dốc hiện đại phía trên
+  ctx.fillStyle = steel;
+  ctx.fillRect(2, 6, 30, 4);
+  ctx.fillStyle = steelLit;
+  ctx.fillRect(2, 6, 30, 1);
+  ctx.fillRect(2, 6, 1, 4);
+  // Tấm kính che nắng phía trước mái
+  ctx.fillStyle = '#5dade2';
+  ctx.fillRect(3, 7, 28, 1);
+
+  // Biển báo trạm xe buýt hình tròn đứng cạnh (Bus Stop Pole Sign)
+  ctx.fillStyle = steel;
+  ctx.fillRect(33, 11, 1, 18);
+  // Biển tròn vàng nổi bật
+  ctx.fillStyle = '#f39c12';
+  ctx.fillRect(31, 7, 5, 5);
+  ctx.fillStyle = '#f1c40f';
+  ctx.fillRect(32, 8, 3, 3);
+  ctx.fillStyle = '#2980b9'; // Icon xe buýt mini
+  ctx.fillRect(32, 9, 3, 2);
+
+  return { canvas: c, ax: 19, ay: 29 };
+}
+
+/** Máy bán nước tự động phong cách pixel art hiện đại */
+function vendingSprite(variant: number): PropSprite {
+  const [c, ctx] = makeCanvas(22, 32);
+  shadowEllipse(ctx, 11, 30, 9, 2.5, 0.28);
+  const out = '#242a38';
+
+  const palettes: [string, string, string][] = [
+    ['#c93b32', '#eb6057', '#942620'], // Đỏ
+    ['#2b6cb0', '#4f8edb', '#1c4978'], // Xanh dương
+    ['#2e8555', '#48b879', '#1a5c37'], // Xanh lá
+  ];
+  const [base, lit, dk] = palettes[variant % palettes.length];
+
+  // Thân máy
+  ctx.fillStyle = out;
+  ctx.fillRect(2, 2, 18, 28);
+  ctx.fillStyle = base;
+  ctx.fillRect(3, 3, 16, 26);
+  ctx.fillStyle = lit;
+  ctx.fillRect(3, 3, 1, 26);
+  ctx.fillRect(3, 3, 16, 1);
+  ctx.fillStyle = dk;
+  ctx.fillRect(18, 3, 1, 26);
+
+  // Bảng hiệu đèn sáng ở đỉnh máy
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(5, 5, 12, 3);
+  ctx.fillStyle = lit;
+  ctx.fillRect(7, 6, 8, 1);
+
+  // Cửa kính trưng bày đồ uống (có đèn chiếu)
+  ctx.fillStyle = '#161a22';
+  ctx.fillRect(4, 9, 14, 11);
+  ctx.fillStyle = '#222836';
+  ctx.fillRect(5, 10, 12, 9);
+
+  // Kệ lon nước hàng trên
+  ctx.fillStyle = '#e74c3c'; // lon đỏ
+  ctx.fillRect(6, 11, 2, 3);
+  ctx.fillStyle = '#f1c40f'; // lon vàng
+  ctx.fillRect(9, 11, 2, 3);
+  ctx.fillStyle = '#2ecc71'; // lon xanh lá
+  ctx.fillRect(12, 11, 2, 3);
+  ctx.fillStyle = '#3498db'; // lon xanh dương
+  ctx.fillRect(15, 11, 2, 3);
+
+  // Kệ lon nước hàng dưới
+  ctx.fillStyle = '#e67e22';
+  ctx.fillRect(6, 15, 2, 3);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(9, 15, 2, 3);
+  ctx.fillStyle = '#9b59b6';
+  ctx.fillRect(12, 15, 2, 3);
+  ctx.fillStyle = '#1abc9c';
+  ctx.fillRect(15, 15, 2, 3);
+
+  // Vệt chéo phản chiếu trên mặt kính
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.fillRect(6, 10, 1, 1);
+  ctx.fillRect(7, 11, 1, 1);
+  ctx.fillRect(8, 12, 1, 1);
+
+  // Khe nhét tiền & đèn LED xanh
+  ctx.fillStyle = '#1a1f29';
+  ctx.fillRect(5, 21, 5, 2);
+  ctx.fillStyle = '#2ecc71';
+  ctx.fillRect(11, 21, 1, 1);
+
+  // Cửa đẩy lấy đồ uống bên dưới
+  ctx.fillStyle = '#1e2430';
+  ctx.fillRect(5, 24, 12, 4);
+  ctx.fillStyle = '#546074';
+  ctx.fillRect(6, 25, 10, 1);
+
+  // Chân máy
+  ctx.fillStyle = '#3a4454';
+  ctx.fillRect(4, 30, 3, 1);
+  ctx.fillRect(15, 30, 3, 1);
+
+  return { canvas: c, ax: 11, ay: 30 };
+}
+
+/** Bãi đỗ xe đạp với 2 chiếc xe đạp phong cách trẻ trung */
+function bicyclesSprite(seed: number): PropSprite {
+  const [c, ctx] = makeCanvas(32, 24);
+  shadowEllipse(ctx, 16, 21, 14, 2.5, 0.22);
+  const out = '#2b3240';
+  const steel = '#8a94a6';
+
+  // Khung giàn kim loại cắm xuống đất
+  ctx.fillStyle = steel;
+  ctx.fillRect(4, 12, 2, 8);
+  ctx.fillRect(14, 12, 2, 8);
+  ctx.fillRect(24, 12, 2, 8);
+  ctx.fillRect(4, 12, 22, 2);
+
+  // Xe đạp 1 (bên trái - màu cam thể thao)
+  // Bánh trước & bánh sau
+  ctx.fillStyle = out;
+  ctx.fillRect(3, 14, 5, 5);
+  ctx.fillRect(11, 14, 5, 5);
+  ctx.fillStyle = '#b0b8c4';
+  ctx.fillRect(4, 15, 3, 3);
+  ctx.fillRect(12, 15, 3, 3);
+
+  // Khung xe cam
+  ctx.fillStyle = '#e65c36';
+  ctx.fillRect(5, 13, 7, 2);
+  ctx.fillRect(7, 11, 2, 4);
+  ctx.fillRect(12, 11, 2, 5);
+
+  // Yên xe & tay lái
+  ctx.fillStyle = '#222834';
+  ctx.fillRect(6, 10, 3, 1); // yên
+  ctx.fillStyle = '#b0b8c4';
+  ctx.fillRect(12, 9, 3, 2); // ghi-đông
+
+  // Xe đạp 2 (bên phải - màu xanh mint)
+  ctx.fillStyle = out;
+  ctx.fillRect(17, 14, 5, 5);
+  ctx.fillRect(25, 14, 5, 5);
+  ctx.fillStyle = '#b0b8c4';
+  ctx.fillRect(18, 15, 3, 3);
+  ctx.fillRect(26, 15, 3, 3);
+
+  // Khung xe xanh mint
+  ctx.fillStyle = '#26b99a';
+  ctx.fillRect(19, 13, 7, 2);
+  ctx.fillRect(21, 11, 2, 4);
+  ctx.fillRect(26, 11, 2, 5);
+
+  // Yên xe & tay lái
+  ctx.fillStyle = '#222834';
+  ctx.fillRect(20, 10, 3, 1);
+  ctx.fillStyle = '#b0b8c4';
+  ctx.fillRect(26, 9, 3, 2);
+
+  return { canvas: c, ax: 16, ay: 21 };
+}
+
+/** Thùng rác phân loại 2 ngăn (xanh dương & xanh lá) */
+function trashSprite(): PropSprite {
+  const [c, ctx] = makeCanvas(20, 20);
+  shadowEllipse(ctx, 10, 17, 9, 2, 0.24);
+
+  // Ngăn rác tái chế (Xanh dương)
+  ctx.fillStyle = '#222938';
+  ctx.fillRect(2, 6, 7, 11);
+  ctx.fillStyle = '#2980b9';
+  ctx.fillRect(3, 7, 5, 9);
+  ctx.fillStyle = '#3498db';
+  ctx.fillRect(2, 5, 7, 2); // Nắp
+  ctx.fillStyle = '#1a5276';
+  ctx.fillRect(4, 8, 3, 2); // Cửa bỏ rác
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(5, 12, 1, 1); // Ký hiệu tái chế
+
+  // Ngăn rác hữu cơ/thông thường (Xanh lá)
+  ctx.fillStyle = '#222938';
+  ctx.fillRect(11, 6, 7, 11);
+  ctx.fillStyle = '#27ae60';
+  ctx.fillRect(12, 7, 5, 9);
+  ctx.fillStyle = '#2ecc71';
+  ctx.fillRect(11, 5, 7, 2); // Nắp
+  ctx.fillStyle = '#196f3d';
+  ctx.fillRect(13, 8, 3, 2); // Cửa bỏ rác
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(14, 12, 1, 1);
+
+  // Khung đế nối chân
+  ctx.fillStyle = '#546074';
+  ctx.fillRect(1, 16, 18, 1);
+
+  return { canvas: c, ax: 10, ay: 17 };
+}
+
+/** Chú mèo đáng yêu nằm ngủ dưới tán cây / ghế đá */
+function catSprite(seed: number): PropSprite {
+  const [c, ctx] = makeCanvas(18, 14);
+  shadowEllipse(ctx, 9, 12, 7, 2, 0.2);
+
+  const variant = seed % 3;
+  if (variant === 0) {
+    // Mèo vàng cam (Ginger tabby) cuộn tròn ngủ say
+    ctx.fillStyle = '#d35400';
+    ctx.beginPath();
+    ctx.ellipse(9, 8, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#e67e22';
+    ctx.beginPath();
+    ctx.ellipse(9, 7.5, 5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bụng trắng kem
+    ctx.fillStyle = '#fef5e7';
+    ctx.fillRect(7, 8, 3, 2);
+
+    // Tai mèo
+    ctx.fillStyle = '#d35400';
+    ctx.fillRect(5, 4, 2, 2);
+    ctx.fillRect(11, 4, 2, 2);
+    ctx.fillStyle = '#f5b7b1';
+    ctx.fillRect(6, 5, 1, 1);
+    ctx.fillRect(11, 5, 1, 1);
+
+    // Mắt khép hờ ngủ ngon
+    ctx.fillStyle = '#78281f';
+    ctx.fillRect(6, 7, 2, 1);
+    ctx.fillRect(10, 7, 2, 1);
+
+    // Đuôi cuộn bên hông
+    ctx.fillStyle = '#ba4a00';
+    ctx.fillRect(14, 8, 2, 3);
+    ctx.fillRect(13, 10, 2, 1);
+  } else if (variant === 1) {
+    // Mèo tam thể (Calico)
+    ctx.fillStyle = '#2c3e50';
+    ctx.beginPath();
+    ctx.ellipse(9, 8, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fbfcfc';
+    ctx.beginPath();
+    ctx.ellipse(9, 7.5, 5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Đốm cam & đen
+    ctx.fillStyle = '#e67e22';
+    ctx.fillRect(6, 6, 3, 3);
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(11, 6, 3, 3);
+
+    // Tai mèo
+    ctx.fillStyle = '#e67e22';
+    ctx.fillRect(5, 4, 2, 2);
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(11, 4, 2, 2);
+
+    // Mắt nhắm
+    ctx.fillStyle = '#1c2833';
+    ctx.fillRect(7, 7, 1, 1);
+    ctx.fillRect(10, 7, 1, 1);
+  } else {
+    // Mèo xám sọc ngủ ngoan
+    ctx.fillStyle = '#566573';
+    ctx.beginPath();
+    ctx.ellipse(9, 8, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#a6acaf';
+    ctx.beginPath();
+    ctx.ellipse(9, 7.5, 5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vằn xám đậm
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(8, 5, 2, 1);
+    ctx.fillRect(7, 7, 1, 2);
+    ctx.fillRect(10, 7, 1, 2);
+
+    // Tai
+    ctx.fillStyle = '#566573';
+    ctx.fillRect(5, 4, 2, 2);
+    ctx.fillRect(11, 4, 2, 2);
+  }
+
+  return { canvas: c, ax: 9, ay: 12 };
+}
+
+/** Phiến đá dạo bước tự nhiên trên thảm cỏ */
+function steppingStonesSprite(seed: number): PropSprite {
+  const [c, ctx] = makeCanvas(26, 16);
+  const out = '#343c4a';
+  const stone = '#7d8590';
+  const lit = '#b3bac4';
+
+  const stones: [number, number, number, number][] = [
+    [5, 4, 4, 2.5],
+    [13, 8, 5, 3],
+    [20, 4, 4, 2.5],
+  ];
+
+  for (const [cx, cy, rx, ry] of stones) {
+    shadowEllipse(ctx, cx, cy + ry, rx + 1, 1.5, 0.2);
+    ctx.fillStyle = out;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = stone;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 0.5, rx - 0.8, ry - 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = lit;
+    ctx.beginPath();
+    ctx.ellipse(cx - 0.6, cy - 1, rx - 1.8, ry - 1.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return { canvas: c, ax: 13, ay: 13 };
+}
+
 export function propSprite(prop: ExteriorProp): PropSprite {
-  const key = prop.kind === 'lamp' || prop.kind === 'bench' || prop.kind === 'totem' ? prop.kind : `${prop.kind}:${prop.seed % 7}`;
+  const key =
+    prop.kind === 'lamp' || prop.kind === 'bench' || prop.kind === 'totem' || prop.kind === 'trash'
+      ? prop.kind
+      : `${prop.kind}:${prop.seed % 7}`;
   let s = cache.get(key);
   if (s) return s;
   switch (prop.kind) {
@@ -355,6 +837,27 @@ export function propSprite(prop: ExteriorProp): PropSprite {
       break;
     case 'totem':
       s = totemSprite();
+      break;
+    case 'fountain':
+      s = fountainSprite(prop.seed);
+      break;
+    case 'vending':
+      s = vendingSprite(prop.seed);
+      break;
+    case 'bicycles':
+      s = bicyclesSprite(prop.seed);
+      break;
+    case 'trash':
+      s = trashSprite();
+      break;
+    case 'cat':
+      s = catSprite(prop.seed);
+      break;
+    case 'stepping_stones':
+      s = steppingStonesSprite(prop.seed);
+      break;
+    case 'bus_shelter':
+      s = busShelterSprite(prop.seed);
       break;
     default:
       // 'paving' e outros tipos desenhados pelo próprio renderer

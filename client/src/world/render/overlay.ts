@@ -14,6 +14,7 @@ import type { Sim } from '../sim/sim';
 import { buildAnim } from './anim';
 import { drawFxBanner } from './github-fx';
 import type { HeadInfo, Renderer } from './renderer';
+import { drawProviderIcon } from '../../ui/icons';
 import { tr } from '../../../../shared/i18n';
 
 // A Pixelify Sans tem o "C" maiúsculo quase fechado (lê-se "Oopa" em vez de "Copa") em qualquer
@@ -103,41 +104,30 @@ interface Label {
 
 type Item = Bubble | Label;
 
-/** Luminância relativa de uma cor hex (0..1). */
-/** Fundo do chip vazado das contas do Codex (o mesmo dos painéis). */
-const CODEX_CHIP_BG = '#161b26';
-/** Selo "CODEX" das etiquetas: discreto (vidro claro), sem a cor de ninguém. */
-const CODEX_BADGE = 'CODEX';
-
-/** Octógono "em degrau" (um quadrado de cantos cortados, como um pixel arredondado). */
-function steppedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, s: number): void {
-  ctx.beginPath();
-  ctx.moveTo(x + s, y);
-  ctx.lineTo(x + w - s, y);
-  ctx.lineTo(x + w, y + s);
-  ctx.lineTo(x + w, y + h - s);
-  ctx.lineTo(x + w - s, y + h);
-  ctx.lineTo(x + s, y + h);
-  ctx.lineTo(x, y + h - s);
-  ctx.lineTo(x, y + s);
-  ctx.closePath();
-}
+/** Selo "OPENAI" das etiquetas: discreto (vidro claro), sem a cor de ninguém. */
+const CODEX_BADGE = 'OPENAI';
+/** Selo "ANTIGRAVITY" das etiquetas do Antigravity. */
+const AGY_BADGE = 'ANTIGRAVITY';
 
 /**
- * Bolinha de uma conta (placas e pílulas das salas): cheia no Claude Code; vazada (anel na cor da conta) no Codex,
- * como o chip dos painéis.
+ * Bolinha de uma conta (placas e pílulas das salas) com as cores dos provedores ou a cor da conta.
  */
 function accountDot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, acc: { color: string; provider?: string }): void {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   if (acc.provider === 'codex') {
-    ctx.fillStyle = CODEX_CHIP_BG;
+    ctx.fillStyle = '#10a37f';
     ctx.fill();
-    ctx.lineWidth = Math.max(1.2, r * 0.55);
-    ctx.strokeStyle = acc.color;
-    ctx.beginPath();
-    ctx.arc(x, y, r - ctx.lineWidth / 2, 0, Math.PI * 2);
-    ctx.stroke();
+    return;
+  }
+  if (acc.provider === 'antigravity') {
+    ctx.fillStyle = '#4285F4';
+    ctx.fill();
+    return;
+  }
+  if (acc.provider === 'claude') {
+    ctx.fillStyle = '#d97757';
+    ctx.fill();
     return;
   }
   ctx.fillStyle = acc.color;
@@ -864,15 +854,16 @@ export class Overlay {
 
   // =================================================================== etiquetas
 
-  /** Larguras das partes da etiqueta. O selo "CODEX" (como o "SUB") só aparece fora do modo compacto. */
-  private labelWidth(l: Label): { nameW: number; chipW: number; badgeW: number; codexW: number } {
+  /** Larguras das partes da etiqueta. O selo do provedor (como o "SUB") só aparece fora do modo compacto. */
+  private labelWidth(l: Label): { nameW: number; chipW: number; badgeW: number; codexW: number; providerBadge?: string } {
     const ch = l.ch;
     const acc = this.sim.accounts.get(ch.info.account);
     const nameW = this.measure(LABEL_FONT, ch.info.name);
     const chipW = acc ? 13 : 0;
     const badgeW = ch.info.kind === 'sub' && !l.compact ? this.measure(BADGE_FONT, 'SUB') + 7 : 0;
-    const codexW = ch.info.provider === 'codex' && !l.compact ? this.measure(BADGE_FONT, CODEX_BADGE) + 7 : 0;
-    return { nameW, chipW, badgeW, codexW };
+    const providerBadge = ch.info.provider === 'codex' ? CODEX_BADGE : ch.info.provider === 'antigravity' ? AGY_BADGE : undefined;
+    const codexW = providerBadge && !l.compact ? this.measure(BADGE_FONT, providerBadge) + 14 : 0;
+    return { nameW, chipW, badgeW, codexW, providerBadge };
   }
 
   /** Posiciona a etiqueta: nos pés (ou acima da cabeça); se colidir, tenta o outro lado. */
@@ -902,8 +893,10 @@ export class Overlay {
     const ch = l.ch;
     const acc = this.sim.accounts.get(ch.info.account);
     const sub = ch.info.kind === 'sub';
-    const codex = ch.info.provider === 'codex' || acc?.provider === 'codex';
-    const { nameW, chipW, badgeW, codexW } = this.labelWidth(l);
+    const provider = ch.info.provider ?? acc?.provider ?? 'claude';
+    const codex = provider === 'codex';
+    const antigravity = provider === 'antigravity';
+    const { nameW, chipW, badgeW, codexW, providerBadge } = this.labelWidth(l);
     const { x, y, w, h } = l;
     const selected = sel.agent === ch.id;
     ctx.fillStyle = selected ? 'rgba(18,96,140,0.95)' : ch.mode === 'wait' ? 'rgba(120,78,0,0.92)' : 'rgba(22,26,38,0.82)';
@@ -911,32 +904,50 @@ export class Overlay {
     ctx.roundRect(x, y, w, h, 7.5);
     ctx.fill();
     let cx = x + 4;
-    if (acc && codex) {
-      // Codex: chip vazado de cantos em degrau (fundo escuro, borda e letra na cor da conta), como nos painéis.
-      steppedRect(ctx, cx, y + h / 2 - 5, 10, 10, 2);
-      ctx.fillStyle = CODEX_CHIP_BG;
-      ctx.fill();
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = acc.color;
-      steppedRect(ctx, cx + 0.75, y + h / 2 - 4.25, 8.5, 8.5, 1.6);
-      ctx.stroke();
-      ctx.font = CHIP_FONT;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = acc.color;
-      ctx.fillText(acc.short.slice(0, 1), cx + 5, y + h / 2 + 0.5);
-      ctx.textAlign = 'left';
-      cx += chipW;
-    } else if (acc) {
-      ctx.beginPath();
-      ctx.arc(cx + 5, y + h / 2, 5, 0, Math.PI * 2);
-      ctx.fillStyle = acc.color;
-      ctx.fill();
-      ctx.font = CHIP_FONT;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = luminance(acc.color) > 0.62 ? '#1d2330' : '#ffffff';
-      ctx.fillText(acc.short.slice(0, 1), cx + 5, y + h / 2 + 0.5);
-      ctx.textAlign = 'left';
-      cx += chipW;
+    if (acc) {
+      if (codex) {
+        ctx.beginPath();
+        ctx.roundRect(cx, y + h / 2 - 5, 10, 10, 2.5);
+        ctx.fillStyle = '#10a37f';
+        ctx.fill();
+        if (!drawProviderIcon(ctx, 'codex', cx + 5, y + h / 2, 6.5, '#ffffff')) {
+          ctx.font = CHIP_FONT;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(acc.short.slice(0, 1), cx + 5, y + h / 2 + 0.5);
+          ctx.textAlign = 'left';
+        }
+        cx += chipW;
+      } else if (antigravity) {
+        ctx.beginPath();
+        ctx.roundRect(cx, y + h / 2 - 5, 10, 10, 2.5);
+        ctx.fillStyle = '#1e1f24';
+        ctx.fill();
+        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
+        if (!drawProviderIcon(ctx, 'antigravity', cx + 5, y + h / 2, 7)) {
+          ctx.font = CHIP_FONT;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(acc.short.slice(0, 1), cx + 5, y + h / 2 + 0.5);
+          ctx.textAlign = 'left';
+        }
+        cx += chipW;
+      } else {
+        ctx.beginPath();
+        ctx.roundRect(cx, y + h / 2 - 5, 10, 10, 2.5);
+        ctx.fillStyle = '#d97757';
+        ctx.fill();
+        if (!drawProviderIcon(ctx, 'claude', cx + 5, y + h / 2, 6.5, '#ffffff')) {
+          ctx.font = CHIP_FONT;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(acc.short.slice(0, 1), cx + 5, y + h / 2 + 0.5);
+          ctx.textAlign = 'left';
+        }
+        cx += chipW;
+      }
     }
     ctx.font = LABEL_FONT;
     ctx.fillStyle = '#f5f7fb';
@@ -958,14 +969,17 @@ export class Overlay {
       ctx.arc(x + w - 3, y + 3, 2.5, 0, Math.PI * 2);
       ctx.fill();
     }
-    if (codexW) {
-      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    if (codexW && providerBadge) {
+      const p = ch.info.provider ?? 'claude';
+      ctx.fillStyle = p === 'antigravity' ? 'rgba(66, 133, 244, 0.22)' : p === 'codex' ? 'rgba(16, 163, 127, 0.22)' : 'rgba(217, 119, 87, 0.22)';
       ctx.beginPath();
       ctx.roundRect(cx, y + 3, codexW, h - 6, 3);
       ctx.fill();
+      const badgeColor = p === 'antigravity' ? '#8ab4f8' : p === 'codex' ? '#34d399' : '#fba78b';
+      drawProviderIcon(ctx, p, cx + 5, y + h / 2, 5.5, badgeColor);
       ctx.font = BADGE_FONT;
-      ctx.fillStyle = '#e8ecf5';
-      ctx.fillText(CODEX_BADGE, cx + 3.5, y + h / 2 + 0.5);
+      ctx.fillStyle = badgeColor;
+      ctx.fillText(providerBadge, cx + 9.5, y + h / 2 + 0.5);
     }
   }
 }

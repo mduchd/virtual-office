@@ -7,7 +7,7 @@ import { DEFAULT_WORLD_OPTIONS, seasonalThemeFor, type Selection, type SocialEve
 import { loadWorldAssets, type WorldAssets } from './assets';
 import { Camera, overviewFrame } from './camera';
 import { createDebug, type WorldDebug } from './debug';
-import { BUILDING_H, COL_W } from './constants';
+import { BUILDING_H, COL_W, EXT_EAST, EXT_NORTH, EXT_SOUTH, EXT_WEST } from './constants';
 import { inRect } from './layout/geometry';
 import { attachInput, type Hit } from './input';
 import { rebaseSnapshot } from './playback';
@@ -36,8 +36,11 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
   const hoverCbs = new Set<(id: string | null) => void>();
   const socialCbs = new Set<(e: SocialEvent) => void>();
   const soundCbs = new Set<(c: SoundCue) => void>();
+  const loungeBgmCbs = new Set<(gain: number) => void>();
   const roomMenuCbs = new Set<(roomId: string, at: { x: number; y: number }) => void>();
-  let cues = new SoundCues(sim, camera);
+  let cues = new SoundCues(sim, camera, Math.random, (gain) => {
+    for (const cb of loungeBgmCbs) cb(gain);
+  });
   let selection: Selection = null;
   let hover: string | null = null;
   let mouse: { x: number; y: number } | null = null;
@@ -67,10 +70,21 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
 
   const buildingRect = () => ({ x: 0, y: 0, w: sim.building.cols * COL_W * TILE, h: BUILDING_H * TILE });
 
+  const worldRect = () => {
+    const w = sim.building.cols * COL_W;
+    return {
+      x: -EXT_WEST * TILE,
+      y: -EXT_NORTH * TILE,
+      w: (w + EXT_WEST + EXT_EAST) * TILE,
+      h: (BUILDING_H + EXT_NORTH + EXT_SOUTH) * TILE,
+    };
+  };
+
   const updateBounds = () => {
     const b = buildingRect();
-    camera.bounds = { x: b.x - 7 * TILE, y: b.y - 6 * TILE, w: b.w + 14 * TILE, h: b.h + 18 * TILE };
-    const fit = camera.fitZoom(b, 16);
+    const w = worldRect();
+    camera.bounds = w;
+    const fit = Math.min(camera.fitZoom(b, 16), camera.fitZoom(w, 16));
     camera.minZoom = Math.min(1, Math.max(0.25, fit));
     camera.clamp();
   };
@@ -142,6 +156,7 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
 
   const zoomStep = (steps: number, sx = camera.viewW / 2, sy = camera.viewH / 2) => {
     userMoved = true;
+    camera.follow = null;
     camera.zoomAt(camera.stepZoom(steps), sx, sy, Date.now(), true);
   };
 
@@ -329,7 +344,9 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
     }
     overlay = new Overlay(renderer.ctx, sim, renderer, camera);
     debug = createDebug(sim, renderer, camera, markMoved);
-    cues = new SoundCues(sim, camera);
+    cues = new SoundCues(sim, camera, Math.random, (gain) => {
+      for (const cb of loungeBgmCbs) cb(gain);
+    });
     lastCols = -1;
     setHover(null);
   };
@@ -357,6 +374,7 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
       if (Math.abs(target - camera.zoom) < 1e-3) zoomStep(factor > 1 ? 1 : -1);
       else {
         userMoved = true;
+        camera.follow = null;
         camera.zoomAt(target, camera.viewW / 2, camera.viewH / 2, Date.now(), true);
       }
     },
@@ -396,6 +414,9 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
     onSound: (cb) => {
       soundCbs.add(cb);
       return () => void soundCbs.delete(cb);
+    },
+    onLoungeBGM: (cb) => {
+      loungeBgmCbs.add(cb);
     },
     destroy: () => {
       cancelAnimationFrame(raf);

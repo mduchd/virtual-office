@@ -14,7 +14,7 @@ import { handleSessionsRoute } from './sessions';
 import type { Hub } from './sse';
 import { handleStatsRoute } from './stats';
 import type { TerminalStreams } from './terminal';
-import { tr } from '../../shared/i18n';
+import { getLocale, normalizeLocale, setLocale, tr, type Locale } from '../../shared/i18n';
 import type { SpawnService } from '../spawn/spawn';
 import { ATTACHMENT_BODY_MAX, parseAttachment, type AttachmentStore } from '../spawn/attachments';
 import type { SpawnFolder } from '../spawn/folders';
@@ -22,6 +22,7 @@ import { AUDIO_BODY_MAX, type DictationService } from '../dictation/dictation';
 import type { DeliveryIndex } from '../deliveries/deliveries';
 import type { FileFetcher } from '../deliveries/fetcher';
 import { HOST_WAIT_MS } from '../host-wait';
+import type { TunnelService } from '../remote/tunnel';
 
 export interface ApiDeps {
   office: Office;
@@ -89,6 +90,12 @@ export interface ApiDeps {
    * HABBLAUD_REMOTE_ALLOW libera. Requisição remota nunca vale pelo Host: só pelo que `allows` liberar.
    */
   remote?: { is(req: IncomingMessage): boolean; allows(feature: RemoteFeature): boolean };
+  /** Salva a preferência de idioma no disco (dataDir/locale). */
+  saveLocale?: (locale: Locale) => void;
+  /** Gerenciador do Cloudflare Tunnel para acesso remoto pelo celular. */
+  tunnel?: TunnelService;
+  /** Garante que a porta remota está escutando. */
+  ensureRemoteListener?: () => void;
 }
 
 /** GET /api/agents/:id/terminal (ids nunca contêm '/'). */
@@ -367,6 +374,24 @@ export function createApiHandler(deps: ApiDeps): (req: IncomingMessage, res: Ser
               : { id: a.id, provider: a.provider, usageStatus: accounts.usageView(a.id).status },
           ),
         });
+      }
+      return true;
+    }
+    if (path === '/api/locale') {
+      if (isRead) {
+        sendJson(res, 200, { locale: getLocale() });
+      } else if (method === 'POST') {
+        readJson(req)
+          .then((body) => {
+            const loc = normalizeLocale((body as { locale?: string })?.locale);
+            if (!loc) throw new HttpError(400, tr('idioma inválido'));
+            setLocale(loc);
+            deps.saveLocale?.(loc);
+            sendJson(res, 200, { ok: true, locale: loc });
+          })
+          .catch((err) => fail(res, err));
+      } else {
+        methodNotAllowed(res, 'GET, POST');
       }
       return true;
     }
@@ -670,6 +695,36 @@ export function createApiHandler(deps: ApiDeps): (req: IncomingMessage, res: Ser
       if (method !== 'POST') methodNotAllowed(res, 'POST');
       else if (isRemote(req)) sendJson(res, 403, { error: tr('não liberado no acesso remoto (veja HABBLAUD_REMOTE_ALLOW)') });
       else handleDemo(req, res).catch((err) => fail(res, err));
+      return true;
+    }
+    if (path === '/api/tunnel' || path.startsWith('/api/tunnel/')) {
+      if (!isLoopbackHost(req.headers.host)) {
+        sendJson(res, 403, { error: tr('o túnel só pode ser controlado pelo próprio computador') });
+        return true;
+      }
+      const tunnel = deps.tunnel;
+      if (!tunnel) {
+        sendJson(res, 503, { error: tr('serviço de túnel indisponível') });
+        return true;
+      }
+      if (path === '/api/tunnel' && isRead) {
+        sendJson(res, 200, tunnel.status());
+      } else if (path === '/api/tunnel/start' && method === 'POST') {
+        req.resume();
+        deps.ensureRemoteListener?.();
+        tunnel.start().then(
+          (status) => sendJson(res, 200, status),
+          (err) => sendJson(res, 500, { error: err.message || String(err) }),
+        );
+      } else if (path === '/api/tunnel/stop' && method === 'POST') {
+        req.resume();
+        tunnel.stop().then(
+          (status) => sendJson(res, 200, status),
+          (err) => sendJson(res, 500, { error: err.message || String(err) }),
+        );
+      } else {
+        methodNotAllowed(res, 'GET, POST');
+      }
       return true;
     }
     if (path === '/api/updates') {

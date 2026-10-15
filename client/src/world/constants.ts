@@ -22,8 +22,8 @@ export const DOOR_X = 7;
 export const DOOR_W = 2;
 
 /** Margens de área externa ao redor do prédio (tiles). */
-export const EXT_WEST = 20;
-export const EXT_EAST = 20;
+export const EXT_WEST = 36;
+export const EXT_EAST = 36;
 export const EXT_NORTH = 16;
 export const EXT_SOUTH = 24;
 

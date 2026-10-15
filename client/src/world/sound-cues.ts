@@ -24,12 +24,20 @@ export class SoundCues {
   private nextKeysAt = 0;
   private nextArcadeAt = 0;
   private rally = new Map<number, number>();
+  private stepPhases = new Map<string, number>();
+  private seatedState = new Map<string, boolean>();
+  private coffeeHeld = new Map<string, string>();
+  private nextCoffeeAt = 0;
+  private loungeGainEmitter: ((gain: number) => void) | null = null;
 
   constructor(
     private readonly sim: Sim,
     private readonly camera: Camera,
     private readonly rng: () => number = Math.random,
-  ) {}
+    onLoungeBGM?: (gain: number) => void,
+  ) {
+    this.loungeGainEmitter = onLoungeBGM ?? null;
+  }
 
   update(now: number, emit: (cue: SoundCue) => void): void {
     const a = this.camera.screenToWorld(0, 0);
@@ -40,6 +48,9 @@ export class SoundCues {
     this.elevators(view, emit);
     this.keys(now, view, near, emit);
     this.social(now, view, near, emit);
+    this.footsteps(now, view, near, emit);
+    this.chairs(view, near, emit);
+    this.coffee(now, view, emit);
   }
 
   private pan(x: number, v: ViewRect): number {
@@ -114,6 +125,61 @@ export class SoundCues {
       }
     }
     for (const id of this.rally.keys()) if (!alive.has(id)) this.rally.delete(id);
+    // BGM do lounge: ativo quando há gatherings na tela
+    this.loungeGainEmitter?.(alive.size > 0 ? near : 0);
+  }
+
+  /** Passos: personagem andando na tela. */
+  private footsteps(now: number, view: ViewRect, near: number, emit: (cue: SoundCue) => void): void {
+    for (const ch of this.sim.chars.values()) {
+      if (ch.pose !== 'walk' || ch.inside || ch.alpha < 0.6) continue;
+      if (!this.inView(ch.x, ch.y, view, 8)) continue;
+      const stepPhase = Math.floor(now / 280);
+      const prev = this.stepPhases.get(ch.id);
+      this.stepPhases.set(ch.id, stepPhase);
+      if (prev === undefined || prev === stepPhase) continue;
+      emit({ kind: 'footstep', gain: near * 0.65, pan: this.pan(ch.x, view) });
+    }
+    // Limpa personagens que saíram
+    for (const id of this.stepPhases.keys()) {
+      if (!this.sim.chars.has(id)) this.stepPhases.delete(id);
+    }
+  }
+
+  /** Cadeira: detecta mudança de seated. */
+  private chairs(view: ViewRect, near: number, emit: (cue: SoundCue) => void): void {
+    for (const ch of this.sim.chars.values()) {
+      if (ch.inside || ch.alpha < 0.6) continue;
+      if (!this.inView(ch.x, ch.y, view, 8)) continue;
+      const prev = this.seatedState.get(ch.id);
+      const cur = ch.seated;
+      this.seatedState.set(ch.id, cur);
+      if (prev === undefined || prev === cur) continue;
+      emit({ kind: 'chair', gain: near * 0.75, pan: this.pan(ch.x, view) });
+    }
+    for (const id of this.seatedState.keys()) {
+      if (!this.sim.chars.has(id)) this.seatedState.delete(id);
+    }
+  }
+
+  /** Cafeteira: emite quando personagem pega café/água. */
+  private coffee(now: number, view: ViewRect, emit: (cue: SoundCue) => void): void {
+    if (now < this.nextCoffeeAt) return;
+    for (const ch of this.sim.chars.values()) {
+      if (ch.held !== 'coffee' && ch.held !== 'water') continue;
+      if (!this.inView(ch.x, ch.y, view, 12)) continue;
+      if (ch.inside || ch.alpha < 0.6) continue;
+      const prev = this.coffeeHeld.get(ch.id);
+      const cur = ch.held;
+      this.coffeeHeld.set(ch.id, cur);
+      if (prev === cur || prev === undefined) continue; // só quando muda
+      this.nextCoffeeAt = now + 4_000;
+      emit({ kind: 'coffee', gain: 0.65, pan: this.pan(ch.x, view) });
+      break;
+    }
+    for (const id of this.coffeeHeld.keys()) {
+      if (!this.sim.chars.has(id)) this.coffeeHeld.delete(id);
+    }
   }
 }
 

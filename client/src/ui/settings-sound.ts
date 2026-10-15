@@ -10,6 +10,7 @@ const CATEGORY_UI: Readonly<Record<SoundCategory, { label: string; hint: string;
   keys: { label: tr('Teclado'), hint: tr('Digitação baixinha de quem trabalha nas salas à vista.'), sample: 'keys' },
   elevator: { label: tr('Elevador'), hint: tr('"Ding" quando alguém chega ou vai embora.'), sample: 'elevator' },
   social: { label: tr('Rodas'), hint: tr('Pingue-pongue e fliperama no lounge.'), sample: 'pingpong' },
+  ambient: { label: tr('Ambiente'), hint: tr('Passos, cadeiras e máquina de café.'), sample: 'footstep' },
 };
 
 export class SoundSettingsGroup {

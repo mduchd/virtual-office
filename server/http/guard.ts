@@ -36,7 +36,7 @@ export function hostnameOf(value: string | undefined): string | undefined {
     if (rest && !/^:\d{1,5}$/.test(rest)) return undefined;
     return v.slice(1, end);
   }
-  const m = /^([a-z0-9._-]+)(?::\d{1,5})?$/.exec(v);
+  const m = /^([a-z0-9._*-]+)(?::\d{1,5})?$/.exec(v);
   return m ? m[1].replace(/\.$/, '') : undefined;
 }
 
@@ -44,6 +44,18 @@ function isLoopbackName(name: string): boolean {
   if (name === 'localhost' || name.endsWith('.localhost')) return true;
   if (name === '::1') return true;
   return isIP(name) === 4 && name.startsWith('127.');
+}
+
+/** Verifica se um nome casa com a lista permitida (suporta curingas como *.trycloudflare.com). */
+export function isAllowedHost(name: string, allowed: ReadonlySet<string>): boolean {
+  if (allowed.has(name)) return true;
+  for (const item of allowed) {
+    if (item.startsWith('*.')) {
+      const suffix = item.slice(1); // ex: .trycloudflare.com
+      if (name.endsWith(suffix) && name.length > suffix.length) return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -59,13 +71,13 @@ export function isLoopbackHost(host: string | undefined): boolean {
 /**
  * Host aceito? IP literal (não há DNS envolvido, logo não há rebinding), `localhost`/`*.localhost`
  * (os navegadores resolvem sempre para o loopback) ou um nome de HABBLAUD_ALLOWED_HOSTS.
- * Sem cabeçalho Host (HTTP/1.0, ferramentas de linha de comando): aceito — navegadores sempre enviam.
+ * Sem cabeçalho Host (HTTP/1.0, ferramentas de linhade comando): aceito — navegadores sempre enviam.
  */
 export function hostAllowed(host: string | undefined, allowed: ReadonlySet<string>): boolean {
   if (host === undefined) return true;
   const name = hostnameOf(host);
   if (!name) return false;
-  return isIP(name) !== 0 || isLoopbackName(name) || allowed.has(name);
+  return isIP(name) !== 0 || isLoopbackName(name) || isAllowedHost(name, allowed);
 }
 
 /**
@@ -84,7 +96,7 @@ export function originAllowed(origin: string | undefined, host: string | undefin
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
   if (host !== undefined && url.host.toLowerCase() === host.trim().toLowerCase()) return true;
   const name = hostnameOf(url.host);
-  return !!name && (isLoopbackName(name) || allowed.has(name));
+  return !!name && (isLoopbackName(name) || isAllowedHost(name, allowed));
 }
 
 export function isJsonContentType(value: string | undefined): boolean {

@@ -41,7 +41,8 @@ export function seasonalThemeFor(theme: OfficeTheme | undefined, date: Date): Se
 export type DaylightMode = 'auto' | 'day' | 'night';
 
 /** Sons do ambiente que o mundo sugere (quem toca, e se toca, é a UI). */
-export type SoundCueKind = 'keys' | 'elevator' | 'pingpong' | 'table' | 'arcade';
+export type SoundCueKind = 'keys' | 'elevator' | 'pingpong' | 'table' | 'arcade'
+  | 'footstep' | 'chair' | 'coffee';
 
 export interface SoundCue {
   kind: SoundCueKind;
@@ -93,6 +94,8 @@ export interface WorldApi {
   setPlayback?(p: WorldPlayback | null): void;
   /** (Opcional, aditivo) Sons do ambiente: teclado de quem trabalha à vista, elevador, rodas. */
   onSound?(cb: (cue: SoundCue) => void): () => void;
+  /** (Opcional, aditivo) Registra callback para o volume do BGM do lounge (0 = silencioso, 1 = pleno). */
+  onLoungeBGM?(cb: (gain: number) => void): void;
   destroy(): void;
 }
 

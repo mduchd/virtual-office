@@ -1,5 +1,6 @@
 // Barra superior: marca, conexão, contadores, uso por conta e botões de controle.
 import { access } from '../net/access';
+import { RemotePanel } from './remote-panel';
 import { SpawnPanel } from './spawn';
 import type { UiComponent, UiContext } from './context';
 import { h, iconButton, setAttr, setHidden, setText, setTitle, setVariant } from './dom';
@@ -44,6 +45,10 @@ export class TopBar implements UiComponent {
   private sidebarBtn: HTMLButtonElement;
   private feedBtn: HTMLButtonElement;
   private timelapseBtn: HTMLButtonElement;
+  private themeBtn: HTMLButtonElement;
+  private soundBtn: HTMLButtonElement;
+  private readonly phoneBtn: HTMLButtonElement;
+  private readonly remotePanel: RemotePanel;
   readonly settingsBtn: HTMLButtonElement;
   private readonly spawnBtn: HTMLButtonElement;
   private readonly spawnPanel: SpawnPanel;
@@ -101,8 +106,33 @@ export class TopBar implements UiComponent {
     this.sidebarBtn = iconButton(ICONS.sidebar, tr('Painel lateral ( [ )'), () => ctx.togglePanel('sidebar'), 'ui-btn-sidebar');
     this.feedBtn = iconButton(ICONS.feed, tr('Feed de atividade ( ] )'), () => ctx.togglePanel('feed'), 'ui-btn-feed');
     this.timelapseBtn = iconButton(TIMELAPSE_ICONS.timelapse, tr('Timelapse: reproduzir o dia (L)'), () => ctx.toggleTimelapse(), 'ui-btn-timelapse');
+    const isDark = ctx.prefs.uiTheme === 'dark';
+    this.themeBtn = iconButton(
+      isDark ? ICONS.sun : ICONS.moon,
+      tr(isDark ? 'Tema claro' : 'Tema escuro'),
+      () => {
+        const next = ctx.prefs.uiTheme === 'dark' ? 'light' : 'dark';
+        ctx.updatePrefs({ uiTheme: next });
+        ctx.playUiSound?.('notification');
+      },
+      'ui-btn-theme',
+    );
+    this.soundBtn = iconButton(
+      ctx.prefs.sound ? ICONS.volume : ICONS.volumeMute,
+      tr(ctx.prefs.sound ? 'Silenciar sons' : 'Ativar sons'),
+      () => {
+        const next = !ctx.prefs.sound;
+        ctx.updatePrefs({ sound: next });
+        if (next) ctx.playUiSound?.('pop');
+      },
+      'ui-btn-sound',
+    );
     this.settingsBtn = iconButton(ICONS.settings, tr('Configurações'), () => ctx.toggleSettings());
     this.settingsBtn.setAttribute('aria-haspopup', 'dialog');
+    this.remotePanel = new RemotePanel(ctx);
+    ctx.root.append(this.remotePanel.el);
+    this.phoneBtn = iconButton(ICONS.phone, tr('Acesso pelo celular (QR Code / Controle remoto)'), () => this.remotePanel.toggle(this.phoneBtn), 'ui-btn-phone');
+    this.phoneBtn.setAttribute('aria-haspopup', 'dialog');
     this.spawnPanel = new SpawnPanel(ctx);
     ctx.root.append(this.spawnPanel.el);
     this.spawnBtn = iconButton(ICONS.newAgent, tr('Novo agente: começa uma sessão do Claude Code no computador'), () => this.spawnPanel.toggle(this.spawnBtn), 'ui-btn-spawn');
@@ -122,6 +152,9 @@ export class TopBar implements UiComponent {
       this.spawnBtn,
       this.timelapseBtn,
       this.feedBtn,
+      this.soundBtn,
+      this.themeBtn,
+      this.phoneBtn,
       this.settingsBtn,
       iconButton(ICONS.help, tr('Ajuda (?)'), () => ctx.openHelp()),
     );
@@ -172,6 +205,7 @@ export class TopBar implements UiComponent {
           : tr('Sem conexão com o servidor do Habblaud'),
     );
     setHidden(this.demoBadge, !(conn === 'open' && snap?.meta.demo));
+    setHidden(this.phoneBtn, access().remote);
 
     // Contadores.
     const now = this.ctx.now();
@@ -205,6 +239,18 @@ export class TopBar implements UiComponent {
     this.feedBtn.setAttribute('aria-pressed', String(this.ctx.isPanelOpen('feed')));
     this.timelapseBtn.setAttribute('aria-pressed', String(this.ctx.isTimelapseOpen()));
     setHidden(this.timelapseBtn, store.mock);
+
+    const isDark = this.ctx.prefs.uiTheme === 'dark';
+    this.themeBtn.innerHTML = isDark ? ICONS.sun : ICONS.moon;
+    const themeLabel = tr(isDark ? 'Tema claro' : 'Tema escuro');
+    setTitle(this.themeBtn, themeLabel);
+    setAttr(this.themeBtn, 'aria-label', themeLabel);
+
+    const soundOn = this.ctx.prefs.sound;
+    this.soundBtn.innerHTML = soundOn ? ICONS.volume : ICONS.volumeMute;
+    const soundLabel = tr(soundOn ? 'Silenciar sons' : 'Ativar sons');
+    setTitle(this.soundBtn, soundLabel);
+    setAttr(this.soundBtn, 'aria-label', soundLabel);
   }
 
   private renderShells(n: number, now: number): void {

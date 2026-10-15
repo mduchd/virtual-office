@@ -2,6 +2,26 @@
 // As lacunas {0}, {1}... (e as nomeadas, como {sala}) precisam aparecer na tradução, em qualquer ordem.
 // Chave ausente = o texto fica em PT. `npm run i18n:check` lista os textos sem tradução e as chaves que sobraram.
 export const EN: Readonly<Record<string, string>> = {
+  // client/src/ui/remote-panel.ts
+  "Acesso pelo celular (QR Code / Controle remoto)": "Phone Access (QR Code / Remote Control)",
+  "Criando túnel seguro da Cloudflare…": "Creating secure Cloudflare tunnel…",
+  "Leva de 3 a 5 segundos para gerar o endereço.": "Takes 3 to 5 seconds to generate address.",
+  "Ligue o túnel para abrir o escritório e controlar os agentes no celular (4G, 5G ou Wi-Fi em qualquer lugar).": "Turn on tunnel to open office and control agents on phone (4G, 5G or Wi-Fi anywhere).",
+  "Sem necessidade de instalar certificado CA": "No need to install CA certificate",
+  "Aprovar ou recusar pedidos de permissão": "Approve or deny permission requests",
+  "Enviar mensagens e instruções para os agentes": "Send messages and instructions to agents",
+  "Criar novos agentes remotamente": "Create new agents remotely",
+  "Ligar acesso remoto": "Turn on remote access",
+  "Desligar acesso remoto": "Turn off remote access",
+  "Desligado": "Off",
+  "Ativo": "Active",
+  "Copiar": "Copy",
+  "Usuário: ": "Username: ",
+  "Senha: ": "Password: ",
+  "Escaneie o QR Code com a câmera do celular:": "Scan QR code with phone camera to open:",
+  "o túnel só pode ser controlado pelo próprio computador": "tunnel can only be controlled from the computer itself",
+  "serviço de túnel indisponível": "tunnel service unavailable",
+
   // client/src/main.ts
   "Escritório virtual em pixel art que mostra, em tempo real, o que seus agentes do Claude Code estão fazendo.": "Pixel-art virtual office that shows, in real time, what your Claude Code agents are doing.",
 
@@ -410,9 +430,10 @@ export const EN: Readonly<Record<string, string>> = {
   "O que os agentes fazem no GitHub (gh pr create/merge, git push, gh run watch, gh pr checks, gh release create e o MCP do GitHub) vira aviso, ": "What agents do on GitHub (gh pr create/merge, git push, gh run watch, gh pr checks, gh release create and the GitHub MCP) becomes a notice, ",
   "entra no feed e anima a sala do projeto. Só o que acontece ao vivo: o que já estava nos transcripts quando o Habblaud abriu fica só no histórico.": "goes into the feed and livens up the project's room. Only what happens live: anything already in the transcripts when Habblaud opened stays in the history only.",
   "Contas e uso": "Accounts and usage",
-  "O chip colorido com a letra (C, D…) mostra de qual conta do Claude Code é cada agente: cada atalho de terminal usa uma pasta de configuração diferente.": "The colored chip with the letter (C, D…) shows which Claude Code account each agent belongs to: each terminal shortcut uses a different config folder.",
+  "O chip colorido com o logotipo oficial mostra de qual ferramenta e conta é cada agente.": "The colored chip with the official logo shows which tool and account each agent belongs to.",
   " Conta do Claude Code · ": " Claude Code account · ",
-  " Conta do Codex (chip vazado, com o selo CODEX onde há espaço).": " Codex account (outlined chip, with the CODEX badge where there's room).",
+  " Conta do Codex (OpenAI) · ": " Codex account (OpenAI) · ",
+  " Conta do Antigravity (Google)": " Antigravity account (Google)",
   "No topo, cada conta mostra o uso da sessão de 5 horas e da semana. O ↻ indica quando cada limite reinicia (contagem regressiva se faltar menos de um dia). Verde abaixo de 50%, âmbar até 80% e vermelho a partir daí.": "At the top, each account shows its 5-hour session and weekly usage. The ↻ shows when each limit resets (a countdown if it's less than a day away). Green below 50%, amber up to 80% and red beyond that.",
   "Números antigos ficam acinzentados com a idade ao lado (ex.: “há 3 h”); uma janela que já reiniciou desde a leitura mostra “—” e “renovada”.": "Old numbers are grayed out with their age next to them (e.g. “3 h ago”); a window that has reset since the reading shows “—” and “renewed”.",
   "Para ver o uso de uma conta (“sem dados de uso”), em ordem de preferência:": "To see an account's usage (“no usage data”), in order of preference:",
@@ -609,6 +630,8 @@ export const EN: Readonly<Record<string, string>> = {
   "\"Ding\" quando alguém chega ou vai embora.": "\"Ding\" when someone arrives or leaves.",
   "Rodas": "Hangouts",
   "Pingue-pongue e fliperama no lounge.": "Ping-pong and arcade games in the lounge.",
+  "Ambiente": "Ambient",
+  "Passos, cadeiras e máquina de café.": "Footsteps, chairs, and coffee machine.",
   "Volume dos sons": "Sound volume",
   "Categorias de som": "Sound categories",
   "Volume": "Volume",
@@ -631,6 +654,9 @@ export const EN: Readonly<Record<string, string>> = {
   "Sempre noite": "Always night",
   "Automático: céu, luzes e sol nas janelas seguem a hora local.": "Automatic: the sky, lights and sun in the windows follow local time.",
   "Tema do escritório": "Office theme",
+  "Tema da interface": "Interface theme",
+  "Claro": "Light",
+  "Escuro": "Dark",
   "Natal": "Christmas",
   "Halloween": "Halloween",
   "Automático: Halloween em outubro e Natal de 1º de novembro a 26 de dezembro; no resto do ano, o visual original. Nenhum: sempre o original.": "Automatic: Halloween in October and Christmas from November 1 to December 26; the rest of the year, the original look. None: always the original.",
@@ -2296,6 +2322,7 @@ export const EN: Readonly<Record<string, string>> = {
   "Ditado em português: confira o texto.": "Dictated in Portuguese: check the text.",
   "Ditado em inglês: confira o texto.": "Dictated in English: check the text.",
   "Ditado em espanhol: confira o texto.": "Dictated in Spanish: check the text.",
+  "Ditado em vietnamita: confira o texto.": "Dictated in Vietnamese: check the text.",
   "Ditado pronto: confira o texto.": "Dictation ready: check the text.",
   "não deu para ler a gravação": "couldn't read the recording",
   "Ditar": "Dictate",
@@ -2583,4 +2610,34 @@ export const EN: Readonly<Record<string, string>> = {
   "Acesso pelo celular": "Phone access",
   "Sair deste aparelho": "Sign out of this device",
   "Encerra o login aqui (uma cópia do cookie também deixa de valer). Para voltar, entre com usuário e senha.": "Ends the login here (a copy of the cookie stops working too). To come back, sign in with your username and password.",
+
+  // Antigravity & usage
+  "transcripts do Antigravity": "Antigravity transcripts",
+  "Não precisa instalar nada: os números chegam com as sessões do Antigravity.": "No need to install anything: the numbers arrive with Antigravity sessions.",
+  "O Antigravity calcula o uso a partir dos transcripts e sessões ativas: última leitura {0}.": "Antigravity calculates usage from transcripts and active sessions: last read {0}.",
+  "Atualizado {0}: calculado dos transcripts do Antigravity.": "Updated {0}: calculated from Antigravity transcripts.",
+  "Como o uso do Antigravity chega ao Habblaud (abre a ajuda em “Antigravity”)": "How Antigravity usage reaches Habblaud (opens help at “Antigravity”)",
+  "Agente do Antigravity (Google)": "Antigravity Agent (Google)",
+  "Agente do Claude Code (Anthropic)": "Claude Code Agent (Anthropic)",
+  "Subagente Antigravity": "Antigravity Subagent",
+  "Agente Antigravity": "Antigravity Agent",
+  "Aguardando resposta do usuário": "Waiting for user response",
+  "Nova instrução recebida": "New instruction received",
+  "Pensando...": "Thinking...",
+  "responder pergunta do agente": "answer agent question",
+
+  // UI parts & social
+  "Maria-chiquinha": "Pigtails",
+  "Polo": "Polo shirt",
+  "filtrado": "filtered",
+  "{0} em {1}": "{0} in {1}",
+  " com {0}": " with {0}",
+  "{0} e {1}": "{0} and {1}",
+  "idioma inválido": "invalid language",
+
+  // Antigravity tools
+  "arquivo": "file",
+  "busca": "search",
+  "Buscando: {0}": "Searching: {0}",
+  "Acessando {0}": "Accessing {0}",
 };

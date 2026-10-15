@@ -30,7 +30,13 @@ function pickLanguage(v: LanguageChoice): void {
   } catch {
     return;
   }
-  location.reload();
+  fetch('/api/locale', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ locale: v }),
+  }).finally(() => {
+    location.reload();
+  });
 }
 
 type BoolPref = { [K in keyof UiPrefs]: UiPrefs[K] extends boolean ? K : never }[keyof UiPrefs];
@@ -87,6 +93,7 @@ export class SettingsPopover implements UiComponent {
   private liveliness: ReturnType<typeof segmented<UiPrefs['liveliness']>>;
   private daylight: ReturnType<typeof segmented<UiPrefs['daylight']>>;
   private theme: ReturnType<typeof segmented<UiPrefs['theme']>>;
+  private uiTheme: ReturnType<typeof segmented<UiPrefs['uiTheme']>>;
   private language: ReturnType<typeof segmented<LanguageChoice>>;
   private soundGroup: SoundSettingsGroup;
   private demoGroup: HTMLElement;
@@ -137,6 +144,14 @@ export class SettingsPopover implements UiComponent {
       (v) => ctx.updatePrefs({ daylight: v }),
     );
     this.daylight.row.append(h('span', { class: 'ui-set__hint', text: tr('Automático: céu, luzes e sol nas janelas seguem a hora local.') }));
+    this.uiTheme = segmented<UiPrefs['uiTheme']>(
+      tr('Tema da interface'),
+      [
+        ['light', tr('Claro')],
+        ['dark', tr('Escuro')],
+      ],
+      (v) => ctx.updatePrefs({ uiTheme: v }),
+    );
     this.theme = segmented<UiPrefs['theme']>(
       tr('Tema do escritório'),
       [['auto', tr('Automático')], ['none', tr('Nenhum')], ['christmas', tr('Natal')], ['halloween', tr('Halloween')]],
@@ -187,7 +202,7 @@ export class SettingsPopover implements UiComponent {
       'div',
       { class: 'ui-popover ui-settings', role: 'dialog', tabIndex: -1, attrs: { 'aria-label': tr('Configurações'), id: 'ui-settings', popover: 'auto' } },
       h('div', { class: 'ui-popover__head' }, h('h2', { text: tr('Configurações') }), close),
-      h('div', { class: 'ui-set-group' }, h('h3', { text: tr('Aparência') }), this.theme.row),
+      h('div', { class: 'ui-set-group' }, h('h3', { text: tr('Aparência') }), this.uiTheme.row, this.theme.row),
       h(
         'div',
         { class: 'ui-set-group' },
@@ -275,6 +290,7 @@ export class SettingsPopover implements UiComponent {
     this.bubbles.set(p.bubbles);
     this.liveliness.set(p.liveliness);
     this.daylight.set(p.daylight);
+    this.uiTheme.set(p.uiTheme ?? 'light');
     this.theme.set(p.theme);
     this.language.set(savedLanguage());
     this.soundGroup.render();

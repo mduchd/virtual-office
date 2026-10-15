@@ -120,7 +120,7 @@ export class FeedPanel implements UiComponent {
     setHidden(this.filterNote, !filtering);
     if (filtering) {
       const names = hidden.map((id) => this.ctx.account(id)?.name ?? id);
-      setText(this.filterNote, 'filtrado');
+      setText(this.filterNote, tr('filtrado'));
       setTitle(this.filterNote, tr('Sem {0} (filtro da barra lateral)', [names.join(', ')]));
     }
 
@@ -233,7 +233,7 @@ export class FeedPanel implements UiComponent {
     li.classList.toggle('is-shell-fail', done === 'fail');
     const present = !!this.ctx.agent(f.agentId);
     li.classList.toggle('is-gone', !present);
-    setTitle(btn, `${formatClock(f.activity.at)} · ${f.agentName} em ${f.roomName}\n${f.activity.text}${f.activity.detail ? `\n${f.activity.detail}` : ''}`);
+    setTitle(btn, `${formatClock(f.activity.at)} · ${tr('{0} em {1}', [f.agentName, f.roomName])}\n${f.activity.text}${f.activity.detail ? `\n${f.activity.detail}` : ''}`);
   }
 
   private metaFromStore(id: string): AgentMeta | undefined {

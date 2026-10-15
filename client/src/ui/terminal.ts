@@ -342,7 +342,7 @@ export function spinnerFrames(provider: Provider): readonly string[] {
 
 /** Símbolo parado do rodapé (sem animação, ou fora do "trabalhando"). */
 export function footerGlyph(kind: TerminalFooterKind, provider: Provider): string {
-  if (kind === 'working') return provider === 'codex' ? '•' : '✻';
+  if (kind === 'working') return provider === 'codex' ? '•' : provider === 'antigravity' ? '✦' : '✻';
   return { waiting: '✋', shell: '⏳', idle: '○', ended: '■' }[kind];
 }
 

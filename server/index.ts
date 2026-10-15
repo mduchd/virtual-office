@@ -3,13 +3,14 @@
 //   npm run dev    -> tsx server/index.ts --dev (Vite em middleware mode, HMR no mesmo servidor)
 //   npm start      -> node dist/server/index.js (serve dist/client)
 import http from 'node:http';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { codexDirsRefused, isDefaultDir } from './accounts/detect';
 import { AccountsService } from './accounts/service';
-import { isTruthy, loadConfig, messagesOffReason, terminalOffReason } from './config';
+import { isTruthy, loadConfig, loadDotEnv, messagesOffReason, terminalOffReason } from './config';
 import { createApiHandler, sendJson } from './http/app';
 import { createRequestGuard, isLoopbackHost } from './http/guard';
-import { createRemoteGate, isRemoteRequest, loadSecret, RemoteSessions, startRemoteListener, type RemoteListener } from './http/remote';
+import { createRemoteGate, isRemoteRequest, loadSecret, parseRemoteConfig, RemoteSessions, startRemoteListener, type RemoteListener } from './http/remote';
 import { Hub } from './http/sse';
 import { createStaticHandler } from './http/static';
 import { TerminalStreams } from './http/terminal';
@@ -37,13 +38,17 @@ import { ClaudeWatcher } from './sources/watcher';
 import { discoverCodexDirs } from './sources/codex/accounts';
 import { CodexHistory } from './sources/codex/history';
 import { CodexSource } from './sources/codex/source';
+import { discoverAntigravityDirs } from './sources/antigravity/accounts';
+import { AntigravityHistory } from './sources/antigravity/history';
+import { AntigravitySource } from './sources/antigravity/source';
 import { createBuildReader } from './build';
 import { UpdateChecker } from './updates/checker';
-import { tr } from '../shared/i18n';
+import { normalizeLocale, setLocale, tr, type Locale } from '../shared/i18n';
 import { createCliRunner, createOpener, SpawnService } from './spawn/spawn';
 import { runnableClaudeBin } from './claude-bin';
 import { AttachmentStore } from './spawn/attachments';
 import { recentFolders } from './spawn/folders';
+import { TunnelService } from './remote/tunnel';
 import { isDemoId } from '../shared/timeline';
 import { DictationService } from './dictation/dictation';
 import { createWhisperTranscriber, findWhisper } from './dictation/whisper';
@@ -52,6 +57,19 @@ import { FileFetcher } from './deliveries/fetcher';
 
 const config = loadConfig();
 const startedAt = Date.now();
+
+// Idioma persistido: se HABBLAUD_LANG não foi passado pelo ambiente, respeita o idioma salvo na pasta de dados.
+if (!process.env.HABBLAUD_LANG) {
+  const localeFile = join(config.dataDir, 'locale');
+  if (existsSync(localeFile)) {
+    try {
+      const saved = normalizeLocale(readFileSync(localeFile, 'utf8').trim());
+      if (saved) setLocale(saved);
+    } catch {
+      // Ignora erro de leitura
+    }
+  }
+}
 
 // Nome antigo (CodeTown, até a 0.3.2): leva ~/.codetown para ~/.habblaud antes de ler qualquer estado e avisa
 // das variáveis CODETOWN_* que não valem mais. No Docker, quem migra é o docker:up.
@@ -111,6 +129,9 @@ const agents = new SourceSet([claude]);
 const codexDirs = config.codex ? discoverCodexDirs(process.env, config.home) : [];
 const codex = codexDirs.length ? new CodexSource({ accounts, office, dirs: codexDirs, env: process.env, home: config.home }) : undefined;
 if (codex) agents.add(codex);
+const antigravityDirs = config.antigravity ? discoverAntigravityDirs(process.env, config.home) : [];
+const antigravity = antigravityDirs.length ? new AntigravitySource({ accounts, office, dirs: antigravityDirs, env: process.env, home: config.home }) : undefined;
+if (antigravity) agents.add(antigravity);
 // Eventos dos hooks do Codex (POST /api/codex/events, mod/habblaud-codex/hook.mjs): vão para a fonte do Codex ao vivo
 // (CodexLive); sem ela (nenhuma pasta do Codex ou HABBLAUD_CODEX=0) a rota responde {ok: false}.
 const codexLive: CodexLive | undefined = codex;
@@ -133,6 +154,7 @@ const history = config.terminal
   ? new HistorySet([new SessionHistory({ accounts: () => accounts.entries(), openAgentOf: (acc, sid) => openMainAgent(office.list(), acc, sid) })])
   : undefined;
 if (history && codex) history.add(new CodexHistory({ accounts: () => accounts.entriesOf('codex'), openAgentOf: (acc, sid) => openMainAgent(office.list(), acc, sid) }));
+if (history && antigravity) history.add(new AntigravityHistory({ accounts: () => accounts.entriesOf('antigravity'), openAgentOf: (acc, sid) => openMainAgent(office.list(), acc, sid) }));
 // Entregas: o fim de cada pedido, lido dos transcripts do histórico (mesma trava do terminal). Os arquivos entregues
 // são lidos aqui (Node, ou pasta de conta montada no Docker) ou pelo auxiliar do host.
 const deliveries = history
@@ -274,13 +296,26 @@ const ticker = setInterval(() => {
   }
 }, 250);
 
+const tunnel = new TunnelService();
+let ensureRemoteListenerFn: (() => void) | undefined;
+
 const api = createApiHandler({
+  tunnel,
+  ensureRemoteListener: () => ensureRemoteListenerFn?.(),
   renameRoom: (id, name) => {
     const path = office.roomPath(id);
     if (!path) return undefined;
     roomAliases.set(path, name);
     office.refreshRoomNames();
     return office.roomName(id);
+  },
+  saveLocale: (loc: Locale) => {
+    try {
+      mkdirSync(config.dataDir, { recursive: true });
+      writeFileSync(join(config.dataDir, 'locale'), loc, 'utf8');
+    } catch {
+      // Ignora erro de gravação
+    }
   },
   office,
   hub,
@@ -367,8 +402,16 @@ server.on('error', (err: NodeJS.ErrnoException) => {
  * API. A porta principal segue só local; quem separa as duas é a porta em que a conexão chegou.
  */
 let remoteListener: RemoteListener | undefined;
-if (config.remote) {
-  const remote = config.remote;
+
+function ensureRemoteListener(): void {
+  if (remoteListener) return;
+  loadDotEnv(config.rootDir, process.env);
+  const parsed = parseRemoteConfig(process.env, config.inDocker);
+  const remote = parsed.config;
+  if (!remote) {
+    if (parsed.warning) log.warn(`   ${parsed.warning}.`);
+    return;
+  }
   const gate = createRemoteGate({
     config: remote,
     sessions: new RemoteSessions(loadSecret(join(config.dataDir, 'remote-secret')), remote, Date.now, join(config.dataDir, 'remote-revoked.json')),
@@ -397,11 +440,11 @@ if (config.remote) {
     const where = config.inDocker ? tr('publicada pelo HABBLAUD_REMOTE_BIND') : remote.host;
     const scheme = remote.tls ? 'HTTPS' : tr('HTTP SEM criptografia (HABBLAUD_REMOTE_INSECURE_HTTP)');
     log.info(tr('   Acesso remoto: ligado na porta {0} ({1}), {2}, com login; libera: {3}.', [remote.port, where, scheme, allow]));
-    if (remote.allow.has('spawn') && !spawn) log.warn(tr('   Acesso remoto: "spawn" liberado, mas o Novo agente está desligado (ligue com HABBLAUD_PTY=1).'));
   });
-} else if (config.remoteWarning) {
-  log.warn(`   ${config.remoteWarning}.`);
 }
+
+ensureRemoteListenerFn = ensureRemoteListener;
+ensureRemoteListener();
 
 server.listen(config.port, config.host, () => {
   const host = config.host === '0.0.0.0' || config.host === '::' ? 'localhost' : config.host;
@@ -479,6 +522,7 @@ function shutdown(signal: string): void {
   ptys?.stopAll();
   updates.stop();
   names.flush();
+  void tunnel.stop();
   void closeVite?.();
   remoteListener?.close();
   server.close(() => process.exit(0));

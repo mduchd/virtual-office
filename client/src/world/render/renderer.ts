@@ -190,6 +190,12 @@ export class Renderer {
     const ly = this.exterior.streetY + Math.round(this.exterior.streetH / 2) - 1;
     ctx.fillStyle = 'rgba(255,236,170,0.75)';
     for (let x = this.baseX + 4; x < this.baseX + c.width; x += 24) ctx.fillRect(x, ly, 12, 2);
+    // Vạch sang đường (Zebra Crossing) cho người đi bộ đối diện sảnh chính
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    const zebraX = -3 * TILE;
+    for (let zy = this.exterior.streetY + 4; zy < this.exterior.streetY + this.exterior.streetH - 4; zy += 10) {
+      ctx.fillRect(zebraX - 4, zy, 38, 5);
+    }
     this.shells = [];
     this.shellWindows = [];
     for (let col = CORE_COLS; col < cols; col++) {

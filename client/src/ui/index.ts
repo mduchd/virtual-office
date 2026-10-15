@@ -85,6 +85,7 @@ export function createUI(root: HTMLElement, store: OfficeStore, world: WorldApi)
       prefs = { ...prefs, ...patch };
       savePrefs(storage, prefs);
       world.setOptions(worldOptionsFrom(prefs));
+      applyLayout();
       invalidate();
     },
     now: () => timelapse?.replayTime ?? Date.now() + skew,
@@ -150,6 +151,9 @@ export function createUI(root: HTMLElement, store: OfficeStore, world: WorldApi)
 
   // ---------------------------------------------------------------- componentes
   const sound = new SoundControl(ctx);
+  ctx.playUiSound = (kind = 'notification') => {
+    void sound.board.unlock().then(() => sound.board.play(kind));
+  };
   const notifier = new Notifier(ctx, sound.board);
   topbar = new TopBar(ctx);
   sidebar = new Sidebar(ctx);
@@ -233,7 +237,7 @@ export function createUI(root: HTMLElement, store: OfficeStore, world: WorldApi)
   const scrim = h('div', { class: 'ui-scrim', attrs: { 'aria-hidden': 'true' }, on: { click: () => ctx.togglePanel('sidebar', false) } });
 
   root.classList.add('ui-root');
-  root.append(timelapse.vignette, topbar.el, sidebar.el, scrim, feed.el, drawer.el, terminal.el, pty.el, timelapse.el, timelapse.badge, toasts.el, banner.el, update.el, empty.el, tip.el, settings.el, history.el, deliveries.el, help.el, renamer.el, live, splash.el);
+  root.append(timelapse.vignette, topbar.el, sidebar.el, sidebar.openBtn, scrim, feed.el, drawer.el, terminal.el, pty.el, timelapse.el, timelapse.badge, toasts.el, banner.el, update.el, empty.el, tip.el, settings.el, history.el, deliveries.el, help.el, renamer.el, live, splash.el);
   area = new FreeArea(world, { root, topbar: topbar.el, sidebar: sidebar.el, drawer: drawer.el, feed: feed.el }, () => ({
     sidebar: panels.sidebar,
     feed: panels.feed,
@@ -276,9 +280,16 @@ export function createUI(root: HTMLElement, store: OfficeStore, world: WorldApi)
   function applyLayout(opts: { refocus?: boolean } = {}): void {
     root.classList.toggle('has-sidebar', panels.sidebar);
     root.classList.toggle('has-feed', panels.feed);
-    root.classList.toggle('has-drawer', selection !== null && !drawer.floating);
+    root.classList.toggle('has-drawer', selection !== null && !drawer?.floating);
     root.classList.toggle('is-narrow', ctx.isNarrow());
-    area.sync(opts);
+    const isLight = (prefs.uiTheme ?? 'light') === 'light';
+    root.classList.toggle('theme-light', isLight);
+    root.classList.toggle('theme-dark', !isLight);
+    root.setAttribute?.('data-theme', isLight ? 'light' : 'dark');
+    if (typeof document !== 'undefined') {
+      document.documentElement?.setAttribute?.('data-theme', isLight ? 'light' : 'dark');
+    }
+    area?.sync(opts);
   }
 
   // ---------------------------------------------------------------- eventos

@@ -3,42 +3,54 @@
 import type { SoundCueKind } from '../world/api';
 
 /** Categorias que o usuário liga/desliga nas configurações. */
-export type SoundCategory = 'alerts' | 'keys' | 'elevator' | 'social';
+export type SoundCategory = 'alerts' | 'keys' | 'elevator' | 'social' | 'ambient';
 /** Sons: o sino de "precisa de você", o estalo de tarefa concluída e os do ambiente. */
-export type SoundKind = 'chime' | 'pop' | SoundCueKind;
+export type SoundKind = 'chime' | 'pop' | 'notification' | SoundCueKind;
 
-export const SOUND_CATEGORIES: readonly SoundCategory[] = ['alerts', 'keys', 'elevator', 'social'];
+export const SOUND_CATEGORIES: readonly SoundCategory[] = ['alerts', 'keys', 'elevator', 'social', 'ambient'];
 
 export const CATEGORY_OF: Readonly<Record<SoundKind, SoundCategory>> = {
   chime: 'alerts',
   pop: 'alerts',
+  notification: 'alerts',
   keys: 'keys',
   elevator: 'elevator',
   pingpong: 'social',
   table: 'social',
   arcade: 'social',
+  footstep: 'ambient',
+  chair: 'ambient',
+  coffee: 'ambient',
 };
 
 /** Intervalo mínimo (ms) entre dois sons do mesmo canal. */
 export const MIN_GAP_MS: Readonly<Record<SoundKind, number>> = {
   chime: 1_200,
   pop: 1_200,
+  notification: 80,
   keys: 600,
   elevator: 1_500,
   pingpong: 200,
   table: 200,
   arcade: 450,
+  footstep: 180,
+  chair: 300,
+  coffee: 1_000,
 };
 
 /** O sino e o estalo dividem o mesmo canal (um não atropela o outro). */
 const CHANNEL: Readonly<Record<SoundKind, string>> = {
   chime: 'alerts',
   pop: 'alerts',
+  notification: 'alerts',
   keys: 'keys',
   elevator: 'elevator',
   pingpong: 'pingpong',
   table: 'pingpong',
   arcade: 'arcade',
+  footstep: 'footstep',
+  chair: 'chair',
+  coffee: 'coffee',
 };
 
 /** Teto global: no máximo isto de sons por segundo (o sino de alerta sempre passa). */
@@ -51,9 +63,10 @@ export interface SoundSettings {
   keys: boolean;
   elevator: boolean;
   social: boolean;
+  ambient: boolean;
 }
 
-export const DEFAULT_SOUND_SETTINGS: SoundSettings = { volume: 0.6, alerts: true, keys: true, elevator: true, social: true };
+export const DEFAULT_SOUND_SETTINGS: SoundSettings = { volume: 0.6, alerts: true, keys: true, elevator: true, social: true, ambient: true };
 
 /** Valida campo a campo (preferência corrompida cai no padrão). */
 export function sanitizeSoundSettings(raw: unknown): SoundSettings {
@@ -61,7 +74,14 @@ export function sanitizeSoundSettings(raw: unknown): SoundSettings {
   const d = DEFAULT_SOUND_SETTINGS;
   const bool = (v: unknown, f: boolean) => (typeof v === 'boolean' ? v : f);
   const vol = typeof o.volume === 'number' && Number.isFinite(o.volume) ? Math.min(1, Math.max(0, o.volume)) : d.volume;
-  return { volume: vol, alerts: bool(o.alerts, d.alerts), keys: bool(o.keys, d.keys), elevator: bool(o.elevator, d.elevator), social: bool(o.social, d.social) };
+  return {
+    volume: vol,
+    alerts: bool(o.alerts, d.alerts),
+    keys: bool(o.keys, d.keys),
+    elevator: bool(o.elevator, d.elevator),
+    social: bool(o.social, d.social),
+    ambient: bool(o.ambient, d.ambient),
+  };
 }
 
 /** Curva do volume mestre: o controle deslizante fica perceptualmente linear. */

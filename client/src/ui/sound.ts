@@ -11,6 +11,7 @@ export class SoundControl implements UiComponent {
   constructor(private ctx: UiContext) {
     this.sync();
     ctx.world.onSound?.((cue) => this.board.play(cue.kind, cue));
+    ctx.world.onLoungeBGM?.((gain) => this.board.setLoungeBGM(gain));
     // O navegador só libera o áudio depois de um gesto do usuário.
     const unlock = () => {
       if (this.ctx.prefs.sound) void this.board.unlock();

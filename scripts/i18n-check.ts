@@ -6,10 +6,11 @@ import { join, relative } from 'node:path';
 import { EN } from '../shared/locales/en';
 import { ES } from '../shared/locales/es';
 import { FR } from '../shared/locales/fr';
+import { VI } from '../shared/locales/vi';
 
 const ROOT = join(import.meta.dirname, '..');
 const DIRS = ['client/src', 'shared', 'server', 'scripts'];
-const DICTS: Record<string, Readonly<Record<string, string>>> = { en: EN, es: ES, fr: FR };
+const DICTS: Record<string, Readonly<Record<string, string>>> = { en: EN, es: ES, fr: FR, vi: VI };
 
 /** Primeiro argumento literal de cada tr('...') do código (sem os testes). */
 export function collectKeys(root = ROOT): Map<string, string[]> {
@@ -21,7 +22,7 @@ export function collectKeys(root = ROOT): Map<string, string[]> {
       if (statSync(p).isDirectory()) {
         if (name !== 'node_modules' && name !== 'dist' && name !== 'locales') walk(p);
       } else if (p.endsWith('.ts') && !p.endsWith('.test.ts') && name !== 'i18n-check.ts') {
-        const src = readFileSync(p, 'utf8');
+        const src = readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
         for (const m of src.matchAll(re)) {
           const key = unescapeJs(m[2]);
           const line = src.slice(0, m.index).split('\n').length;

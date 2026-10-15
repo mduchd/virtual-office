@@ -37,15 +37,35 @@ export function layoutExterior(cols: number): ExteriorLayout {
   const props: ExteriorProp[] = [];
   const rng = mulberry32(0xc0de + cols);
 
+  // 1. Thảm cỏ xanh làm nền tự nhiên
   floors.push({ kind: 'grass', x: px(bounds.x), y: px(bounds.y), w: px(bounds.w), h: px(bounds.h), seed: 11 });
-  // calçada em volta do prédio
+
+  // 2. Đại lộ & vỉa hè bao quanh phía Nam
   const south = BUILDING_H;
   floors.push({ kind: 'sidewalk', x: px(bounds.x), y: px(south + 2), w: px(bounds.w), h: px(2), seed: 12 });
   floors.push({ kind: 'street', x: px(bounds.x), y: px(south + 4), w: px(bounds.w), h: px(5), seed: 13 });
   floors.push({ kind: 'sidewalk', x: px(bounds.x), y: px(south + 9), w: px(bounds.w), h: px(2), seed: 14 });
-  // caminho de pedra até a calçada, na frente da recepção
-  floors.push({ kind: 'sidewalk', x: px(-3), y: px(CORRIDOR_Y), w: px(3), h: px(5), seed: 15 });
-  floors.push({ kind: 'sidewalk', x: px(-3), y: px(CORRIDOR_Y + 5), w: px(2), h: px(south + 2 - CORRIDOR_Y - 5), seed: 16 });
+
+  // Mở rộng vỉa hè trạm xe buýt đối diện sảnh chính (phía nam con đường)
+  floors.push({ kind: 'sidewalk', x: px(-6), y: px(south + 9), w: px(8), h: px(3), seed: 15 });
+
+  // 3. Quảng Trường Tiền Sảnh Phía Tây (West Grand Plaza)
+  // Sân gạch đón khách rộng lớn trước sảnh chính
+  floors.push({ kind: 'sidewalk', x: px(-7), y: px(CORRIDOR_Y - 1), w: px(7), h: px(7), seed: 20 });
+  // Bãi đỗ xe đạp nền bê tông kẻ vạch
+  floors.push({ kind: 'concrete', x: px(-7), y: px(CORRIDOR_Y - 4), w: px(5), h: px(3), seed: 21 });
+  // Đại lộ đi bộ kết nối từ tiền sảnh xuống thẳng vỉa hè đường lớn phía Nam
+  floors.push({ kind: 'sidewalk', x: px(-3), y: px(CORRIDOR_Y + 6), w: px(3), h: px(south + 2 - CORRIDOR_Y - 6), seed: 22 });
+
+  // 4. Quảng Trường Đài Phun Nước Hoàng Gia (Grand Fountain Court)
+  // Sân gạch đá hoa đối xứng nâng đỡ đài phun nước lớn
+  floors.push({ kind: 'sidewalk', x: px(-16), y: px(CORRIDOR_Y + 4), w: px(8), h: px(8), seed: 25 });
+  // Lối đi kết nối giữa Tiền sảnh và Quảng trường đài phun nước
+  floors.push({ kind: 'sidewalk', x: px(-9), y: px(CORRIDOR_Y + 7), w: px(3), h: px(2), seed: 26 });
+
+  // 5. Khu Vườn Nghỉ Ngơi Phía Đông (East Garden Retreat)
+  floors.push({ kind: 'sidewalk', x: px(w), y: px(CORRIDOR_Y), w: px(7), h: px(6), seed: 30 });
+  floors.push({ kind: 'wood', x: px(w + 1), y: px(CORRIDOR_Y + 1), w: px(5), h: px(4), seed: 31 });
 
   // árvores ao norte (fileira com variação) e a oeste/leste
   for (let x = bounds.x + 1; x < bounds.x + bounds.w - 1; x += 4 + Math.floor(rng() * 3)) {
@@ -63,12 +83,14 @@ export function layoutExterior(cols: number): ExteriorLayout {
     }
   }
   for (const side of [-1, 1]) {
-    for (const band of [0, 7, 13]) {
+    const maxBand = side < 0 ? EXT_WEST - 7 : EXT_EAST - 7;
+    for (let band = 0; band <= maxBand; band += 5 + Math.floor(rng() * 2)) {
       const baseX = side < 0 ? -6 - band : w + 4 + band;
       for (let y = 1; y < BUILDING_H; y += 3 + Math.floor(rng() * 3)) {
         if (side < 0 && band === 0 && y >= CORRIDOR_Y - 1 && y <= south + 1) continue;
-        props.push({ kind: rng() < 0.3 ? 'pine' : 'tree', x: px(baseX + Math.floor(rng() * 5)), y: px(y + 1), seed: Math.floor(rng() * 1e9) });
-        if (band === 0 && rng() < 0.5) props.push({ kind: 'bush', x: px(side < 0 ? -2 : w + 1), y: px(y + 2), seed: Math.floor(rng() * 1e9) });
+        props.push({ kind: rng() < 0.3 ? 'pine' : 'tree', x: px(baseX + Math.floor(rng() * 4)), y: px(y + 1), seed: Math.floor(rng() * 1e9) });
+        if (rng() < 0.45) props.push({ kind: 'bush', x: px(baseX + (side < 0 ? 2 : -2)), y: px(y + 2), seed: Math.floor(rng() * 1e9) });
+        if (rng() < 0.15) props.push({ kind: 'rock', x: px(baseX + (side < 0 ? 1 : -1)), y: px(y + 1) + 4, seed: Math.floor(rng() * 1e9) });
       }
     }
   }
@@ -89,9 +111,64 @@ export function layoutExterior(cols: number): ExteriorLayout {
       if (rng() < 0.3) props.push({ kind: 'bush', x: px(x + 3), y: px(south + row + 1), seed: Math.floor(rng() * 1e9) });
     }
   }
-  props.push({ kind: 'bench', x: px(-4), y: px(CORRIDOR_Y + 3) + 6, seed: 1 });
-  // totem com a marca na entrada principal (oeste)
-  props.push({ kind: 'totem', x: px(-3) + 6, y: px(CORRIDOR_Y + 1), seed: 2 });
+
+  // --- PHÂN KHU 1: QUẢNG TRƯỜNG TIỀN SẢNH TÂY (West Grand Plaza)
+  // Totem thương hiệu đặt trang trọng ở góc cổng đón
+  props.push({ kind: 'totem', x: px(-2) + 4, y: px(CORRIDOR_Y), seed: 2 });
+  // Máy bán nước tự động đặt áp sát tường sảnh đón trên nền gạch
+  props.push({ kind: 'vending', x: px(-1), y: px(CORRIDOR_Y + 5) + 4, seed: 11 });
+  // Thùng rác phân loại 2 ngăn bên cạnh máy bán nước
+  props.push({ kind: 'trash', x: px(-3), y: px(CORRIDOR_Y + 5) + 6, seed: 12 });
+  // Ghế đá tiền sảnh
+  props.push({ kind: 'bench', x: px(-6), y: px(CORRIDOR_Y + 3) + 4, seed: 1 });
+  // Chú mèo ngủ sưởi nắng dưới chân ghế đá tiền sảnh
+  props.push({ kind: 'cat', x: px(-5), y: px(CORRIDOR_Y + 3) + 10, seed: 33 });
+  // Bồn hoa tiền sảnh
+  props.push({ kind: 'flowers', x: px(-6), y: px(CORRIDOR_Y + 5) + 6, seed: 34 });
+
+  // --- PHÂN KHU 2: TRẠM ĐỖ XE & COMMUTER HUB (Bãi xe bê tông phía Bắc tiền sảnh)
+  props.push({ kind: 'bicycles', x: px(-5), y: px(CORRIDOR_Y - 2), seed: 10 });
+  props.push({ kind: 'lamp', x: px(-7), y: px(CORRIDOR_Y - 2), seed: 40 });
+
+  // --- PHÂN KHU 3: CÔNG VIÊN ĐÀI PHUN NƯỚC HOÀNG GIA (Grand Fountain Court)
+  // Đài phun nước lớn 3 tầng đặt chính giữa tâm sân đá (-12, CORRIDOR_Y + 8)
+  props.push({ kind: 'fountain', x: px(-12), y: px(CORRIDOR_Y + 8), seed: 100 });
+  // 4 bồn hoa vuông vức ở 4 góc đăng đối của sân
+  props.push({ kind: 'flowers', x: px(-15), y: px(CORRIDOR_Y + 5), seed: 101 });
+  props.push({ kind: 'flowers', x: px(-9), y: px(CORRIDOR_Y + 5), seed: 102 });
+  props.push({ kind: 'flowers', x: px(-15), y: px(CORRIDOR_Y + 11), seed: 103 });
+  props.push({ kind: 'flowers', x: px(-9), y: px(CORRIDOR_Y + 11), seed: 104 });
+  // 2 ghế đá 2 bên đài phun nước để nhân viên ngồi ngắm cảnh
+  props.push({ kind: 'bench', x: px(-15), y: px(CORRIDOR_Y + 8), seed: 88 });
+  props.push({ kind: 'bench', x: px(-9), y: px(CORRIDOR_Y + 8), seed: 89 });
+  // Chú mèo thứ 2 cuộn tròn dưới ghế đá đài phun nước
+  props.push({ kind: 'cat', x: px(-14), y: px(CORRIDOR_Y + 8) + 8, seed: 105 });
+  // Cột đèn công viên soi sáng đài phun nước ban đêm
+  props.push({ kind: 'lamp', x: px(-12), y: px(CORRIDOR_Y + 5) - 2, seed: 106 });
+  props.push({ kind: 'lamp', x: px(-12), y: px(CORRIDOR_Y + 11) + 6, seed: 107 });
+  // Hàng cây xanh tạo bóng râm bao bọc phía tây công viên
+  props.push({ kind: 'tree', x: px(-18), y: px(CORRIDOR_Y + 6), seed: 108 });
+  props.push({ kind: 'tree', x: px(-18), y: px(CORRIDOR_Y + 10), seed: 109 });
+
+  // --- PHÂN KHU 4: HOA VIÊN THƯ GIÃN PHÍA ĐÔNG (East Garden Retreat)
+  props.push({ kind: 'parasol', x: px(w + 3.5), y: px(CORRIDOR_Y + 3) + 2, seed: 200 });
+  props.push({ kind: 'bench', x: px(w + 5), y: px(CORRIDOR_Y + 5) + 4, seed: 77 });
+  props.push({ kind: 'cat', x: px(w + 4), y: px(CORRIDOR_Y + 5) + 10, seed: 78 });
+  props.push({ kind: 'flowers', x: px(w + 2), y: px(CORRIDOR_Y + 5) + 4, seed: 202 });
+  props.push({ kind: 'flowers', x: px(w + 6), y: px(CORRIDOR_Y + 1) + 4, seed: 203 });
+  props.push({ kind: 'tree', x: px(w + 8), y: px(CORRIDOR_Y + 3), seed: 204 });
+
+  // --- PHÂN KHU 5: ĐẠI LỘ PHÍA NAM (South Boulevard & Bus Station)
+  // Nhà chờ xe buýt hiện đại trên vỉa hè đối diện lối đi sảnh chính
+  props.push({ kind: 'bus_shelter', x: px(-2), y: px(south + 9) + 6, seed: 300 });
+  // Thùng rác cạnh trạm xe buýt
+  props.push({ kind: 'trash', x: px(1.5), y: px(south + 9) + 8, seed: 301 });
+  // Tiện ích dọc vỉa hè phía Nam
+  props.push({ kind: 'trash', x: px(2), y: px(south + 2) + 12, seed: 302 });
+  if (w > px(16)) {
+    props.push({ kind: 'trash', x: px(Math.floor(w / TILE) - 3), y: px(south + 2) + 12, seed: 303 });
+    props.push({ kind: 'vending', x: px(Math.floor(w / (2 * TILE))), y: px(south + 2) + 8, seed: 304 });
+  }
 
   const streetY = px(south + 4);
   const streetH = px(5);
@@ -139,8 +216,8 @@ export function slotShell(slot: number, lastColumn: boolean): SlotShell {
     // caminho do gramado até o deck, deck no meio e canteiros sob as janelas
     floors.push({ kind: 'sidewalk', x: x0 + T(7), y: T(rect.y), w: T(2), h: T(3), seed: slot });
     deck(3, 3, 10, 5);
-    props.push({ kind: 'parasol', x: x0 + T(5.5), y: T(rect.y + 6) + 4, seed: seed(), slot });
-    props.push({ kind: 'parasol', x: x0 + T(10.5), y: T(rect.y + 6) + 4, seed: seed(), slot });
+    props.push({ kind: 'bench', x: x0 + T(5), y: T(rect.y + 6) + 4, seed: seed(), slot });
+    props.push({ kind: 'lamp', x: x0 + T(10.5), y: T(rect.y + 6) + 4, seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(3.5), y: T(rect.y + 3) + 6, seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(12.5), y: T(rect.y + 3) + 6, seed: seed(), slot });
     for (const cx of [3, 8, 13]) props.push({ kind: 'flowers', x: x0 + T(cx), y: T(rect.y + 9) + 12, seed: slot * 3 + cx, slot });
@@ -148,6 +225,8 @@ export function slotShell(slot: number, lastColumn: boolean): SlotShell {
     props.push({ kind: rng() < 0.5 ? 'pine' : 'tree', x: x0 + T(15) - 4, y: T(rect.y + 3) + 6, seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(1) + 8, y: T(rect.y + 8), seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(15) - 8, y: T(rect.y + 8), seed: seed(), slot });
+    props.push({ kind: 'stepping_stones', x: x0 + T(7), y: T(rect.y + 1.5), seed: slot, slot });
+    props.push({ kind: 'cat', x: x0 + T(6.5), y: T(rect.y + 7), seed: slot * 13, slot });
   } else {
     // mureta externa fechando o corredor (linha 17) e jardim abaixo, ligado à calçada da rua
     walls.push({ kind: 'south', x: x0, y: SOUTH_Y * TILE, w: W, style: EXTERIOR_WALL });
@@ -156,8 +235,8 @@ export function slotShell(slot: number, lastColumn: boolean): SlotShell {
     // trecho entre a fachada e a calçada: só existe enquanto o slot está vazio (a cerca viva fecha)
     props.push({ kind: 'paving', x: x0 + T(7), y: T(BUILDING_H), seed: slot, slot });
     deck(3, 3.5, 10, 5);
-    props.push({ kind: 'parasol', x: x0 + T(5.5), y: T(rect.y + 6.5) + 4, seed: seed(), slot });
-    props.push({ kind: 'parasol', x: x0 + T(10.5), y: T(rect.y + 6.5) + 4, seed: seed(), slot });
+    props.push({ kind: 'bench', x: x0 + T(5), y: T(rect.y + 6.5) + 4, seed: seed(), slot });
+    props.push({ kind: 'lamp', x: x0 + T(10.5), y: T(rect.y + 6.5) + 4, seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(3.5), y: T(rect.y + 4) + 4, seed: seed(), slot });
     props.push({ kind: 'bush', x: x0 + T(12.5), y: T(rect.y + 4) + 4, seed: seed(), slot });
     for (const cx of [3, 13]) props.push({ kind: 'flowers', x: x0 + T(cx), y: T(rect.y + 2), seed: slot * 3 + cx, slot });
@@ -166,6 +245,8 @@ export function slotShell(slot: number, lastColumn: boolean): SlotShell {
     props.push({ kind: 'tree', x: x0 + T(1) + 6, y: T(rect.y + 11), seed: seed(), slot });
     props.push({ kind: rng() < 0.5 ? 'pine' : 'tree', x: x0 + T(15) - 6, y: T(rect.y + 11) + 4, seed: seed(), slot });
     props.push({ kind: 'rock', x: x0 + T(14), y: T(rect.y + 2) + 4, seed: slot + 3, slot });
+    props.push({ kind: 'trash', x: x0 + T(13.5), y: T(rect.y + 9), seed: slot, slot });
+    props.push({ kind: 'cat', x: x0 + T(5), y: T(rect.y + 10) + 10, seed: slot * 17, slot });
   }
   return { slot, rect, walls, windows, floors, props };
 }

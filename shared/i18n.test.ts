@@ -3,6 +3,7 @@ import { getLocale, intlLocale, normalizeLocale, serverLocale, setLocale, tr } f
 import { EN } from './locales/en';
 import { ES } from './locales/es';
 import { FR } from './locales/fr';
+import { VI } from './locales/vi';
 
 const placeholders = (s: string) => new Set(s.match(/\{\w+\}/g) ?? []);
 
@@ -21,6 +22,9 @@ describe('i18n', () => {
     expect(normalizeLocale('pt_PT')).toBe('pt-BR');
     expect(normalizeLocale('en-US')).toBe('en');
     expect(normalizeLocale('es_AR.UTF-8')).toBe('es');
+    expect(normalizeLocale('vi')).toBe('vi');
+    expect(normalizeLocale('vi-VN')).toBe('vi');
+    expect(normalizeLocale('vi_VN.UTF-8')).toBe('vi');
     expect(normalizeLocale('de-DE')).toBeUndefined();
     expect(normalizeLocale('')).toBeUndefined();
     expect(normalizeLocale(null)).toBeUndefined();
@@ -55,15 +59,17 @@ describe('i18n', () => {
     expect(serverLocale({}, 'es-AR')).toBe('es');
   });
 
-  it('inglês e espanhol traduzem e usam o formato de data do idioma', () => {
+  it('inglês, espanhol e vietnamita traduzem e usam o formato de data do idioma', () => {
     setLocale('en');
     expect(intlLocale()).toBe('en-US');
     setLocale('es');
     expect(intlLocale()).toBe('es');
+    setLocale('vi');
+    expect(intlLocale()).toBe('vi-VN');
   });
 
   it('nenhuma tradução fica vazia nem perde ou inventa lacunas', () => {
-    for (const [lang, dict] of Object.entries({ en: EN, es: ES, fr: FR })) {
+    for (const [lang, dict] of Object.entries({ en: EN, es: ES, fr: FR, vi: VI })) {
       for (const [pt, t] of Object.entries(dict)) {
         expect(t.trim(), `${lang}: ${pt}`).not.toBe('');
         const original = placeholders(pt);

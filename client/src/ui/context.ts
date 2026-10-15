@@ -74,4 +74,6 @@ export interface UiContext {
   /** Abre/fecha o timelapse do dia (ui/timelapse.ts). */
   toggleTimelapse(): void;
   isTimelapseOpen(): boolean;
+  /** Toca um som sutil de feedback de interface (pop, notification). */
+  playUiSound?(kind?: import('../audio/scheduler').SoundKind): void;
 }

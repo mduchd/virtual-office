@@ -43,6 +43,7 @@
     "codex:bridge": "tsx scripts/codex-bridge.ts",
     "remote:setup": "tsx scripts/remote-setup.ts",
     "remote:mdns": "tsx scripts/remote-mdns.ts",
+    "remote:tunnel": "tsx scripts/remote-tunnel.ts",
     "release": "tsx scripts/release.ts"
   },
   "devDependencies": {

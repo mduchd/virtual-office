@@ -403,9 +403,10 @@ export const FR: Readonly<Record<string, string>> = {
   "O que os agentes fazem no GitHub (gh pr create/merge, git push, gh run watch, gh pr checks, gh release create e o MCP do GitHub) vira aviso, ": "Ce que les agents font sur GitHub (gh pr create/merge, git push, gh run watch, gh pr checks, gh release create et le MCP de GitHub) devient une notification, ",
   "entra no feed e anima a sala do projeto. Só o que acontece ao vivo: o que já estava nos transcripts quando o Habblaud abriu fica só no histórico.": "entre dans le fil et anime la salle du projet. Seulement ce qui se passe en direct : ce qui était déjà dans les transcripts à l'ouverture de Habblaud reste dans l'historique.",
   "Contas e uso": "Comptes et utilisation",
-  "O chip colorido com a letra (C, D…) mostra de qual conta do Claude Code é cada agente: cada atalho de terminal usa uma pasta de configuração diferente.": "La pastille colorée avec la lettre (C, D…) indique à quel compte Claude Code appartient chaque agent : chaque raccourci de terminal utilise un dossier de configuration différent.",
+  "O chip colorido com o logotipo oficial mostra de qual ferramenta e conta é cada agente.": "Le badge coloré avec le logo officiel montre de quel outil et compte provient chaque agent.",
   " Conta do Claude Code · ": " Compte Claude Code · ",
-  " Conta do Codex (chip vazado, com o selo CODEX onde há espaço).": " Compte Codex (pastille évidée, avec le badge CODEX quand il y a de la place).",
+  " Conta do Codex (OpenAI) · ": " Compte Codex (OpenAI) · ",
+  " Conta do Antigravity (Google)": " Compte Antigravity (Google)",
   "No topo, cada conta mostra o uso da sessão de 5 horas e da semana. O ↻ indica quando cada limite reinicia (contagem regressiva se faltar menos de um dia). Verde abaixo de 50%, âmbar até 80% e vermelho a partir daí.": "En haut, chaque compte affiche l'utilisation de la session de 5 heures et de la semaine. Le ↻ indique quand chaque limite se réinitialise (compte à rebours s'il reste moins d'un jour). Vert sous 50 %, ambre jusqu'à 80 % et rouge au-delà.",
   "Números antigos ficam acinzentados com a idade ao lado (ex.: “há 3 h”); uma janela que já reiniciou desde a leitura mostra “—” e “renovada”.": "Les chiffres anciens sont grisés avec leur âge à côté (ex. : « il y a 3 h ») ; une fenêtre déjà réinitialisée depuis la lecture affiche « — » et « renouvelée ».",
   "Para ver o uso de uma conta (“sem dados de uso”), em ordem de preferência:": "Pour voir l'utilisation d'un compte (« pas de données d'utilisation »), par ordre de préférence :",
@@ -2156,6 +2157,9 @@ export const FR: Readonly<Record<string, string>> = {
 
   // client/src/ui/settings.ts
   "Tema do escritório": "Thème du bureau",
+  "Tema da interface": "Thème de l'interface",
+  "Claro": "Clair",
+  "Escuro": "Sombre",
   "Natal": "Noël",
   "Halloween": "Halloween",
   "Automático: Halloween em outubro e Natal de 1º de novembro a 26 de dezembro; no resto do ano, o visual original. Nenhum: sempre o original.": "Automatique : Halloween en octobre et Noël du 1er novembre au 26 décembre ; le reste de l'année, l'apparence d'origine. Aucun : toujours l'original.",
@@ -2312,6 +2316,7 @@ export const FR: Readonly<Record<string, string>> = {
   "Ditado em português: confira o texto.": "Dictée en portugais : vérifiez le texte.",
   "Ditado em inglês: confira o texto.": "Dictée en anglais : vérifiez le texte.",
   "Ditado em espanhol: confira o texto.": "Dictée en espagnol : vérifiez le texte.",
+  "Ditado em vietnamita: confira o texto.": "Dictée en vietnamien : vérifiez le texte.",
   "Ditado pronto: confira o texto.": "Dictée prête : vérifiez le texte.",
   "não deu para ler a gravação": "impossible de lire l'enregistrement",
   "Ditar": "Dicter",
@@ -2599,4 +2604,38 @@ export const FR: Readonly<Record<string, string>> = {
   "Acesso pelo celular": "Accès depuis le téléphone",
   "Sair deste aparelho": "Se déconnecter de cet appareil",
   "Encerra o login aqui (uma cópia do cookie também deixa de valer). Para voltar, entre com usuário e senha.": "Met fin à la connexion ici (une copie du cookie cesse aussi de fonctionner). Pour revenir, connectez-vous avec votre nom d'utilisateur et votre mot de passe.",
+
+  // Sound
+  "Ambiente": "Ambiance",
+  "Passos, cadeiras e máquina de café.": "Pas, chaises et machine à café.",
+
+  // Antigravity & usage
+  "transcripts do Antigravity": "transcripts d'Antigravity",
+  "Não precisa instalar nada: os números chegam com as sessões do Antigravity.": "Rien à installer : les chiffres arrivent avec les sessions d'Antigravity.",
+  "O Antigravity calcula o uso a partir dos transcripts e sessões ativas: última leitura {0}.": "Antigravity calcule l'utilisation à partir des transcripts et des sessions actives : dernière lecture {0}.",
+  "Atualizado {0}: calculado dos transcripts do Antigravity.": "Mis à jour {0} : calculé d'après les transcripts d'Antigravity.",
+  "Como o uso do Antigravity chega ao Habblaud (abre a ajuda em “Antigravity”)": "Comment l'utilisation d'Antigravity arrive dans Habblaud (ouvre l'aide sous « Antigravity »)",
+  "Agente do Antigravity (Google)": "Agent Antigravity (Google)",
+  "Agente do Claude Code (Anthropic)": "Agent Claude Code (Anthropic)",
+  "Subagente Antigravity": "Sous-agent Antigravity",
+  "Agente Antigravity": "Agent Antigravity",
+  "Aguardando resposta do usuário": "En attente de la réponse de l'utilisateur",
+  "Nova instrução recebida": "Nouvelle instruction reçue",
+  "Pensando...": "Réflexion en cours...",
+  "responder pergunta do agente": "répondre à la question de l'agent",
+
+  // UI parts & social
+  "Maria-chiquinha": "Couettes",
+  "Polo": "Polo",
+  "filtrado": "filtré",
+  "{0} em {1}": "{0} dans {1}",
+  " com {0}": " avec {0}",
+  "{0} e {1}": "{0} et {1}",
+  "idioma inválido": "langue non valide",
+
+  // Antigravity tools
+  "arquivo": "fichier",
+  "busca": "recherche",
+  "Buscando: {0}": "Recherche : {0}",
+  "Acessando {0}": "Accès à {0}",
 };

@@ -13,6 +13,8 @@ export interface UiPrefs {
   /** Ciclo dia/noite: automático (hora local), sempre dia ou sempre noite. */
   daylight: DaylightMode;
   theme: NonNullable<WorldOptions['theme']>;
+  /** Tema da interface: claro ou escuro. */
+  uiTheme: 'light' | 'dark';
   /** Sons sintetizados (interruptor geral; desligado por padrão). */
   sound: boolean;
   /** Volume mestre e categorias dos sons. */
@@ -31,7 +33,8 @@ export const DEFAULT_PREFS: UiPrefs = {
   liveliness: DEFAULT_WORLD_OPTIONS.liveliness,
   daylight: 'auto',
   theme: 'auto',
-  sound: false,
+  uiTheme: 'light',
+  sound: true,
   sounds: DEFAULT_SOUND_SETTINGS,
   browserNotifications: false,
   sidebarOpen: true,
@@ -56,6 +59,7 @@ export function sanitizePrefs(raw: unknown): UiPrefs {
     // preferências antigas: o interruptor "dia e noite" desligado vira "sempre dia"
     daylight: oneOf(o.daylight, ['auto', 'day', 'night'] as const, o.dayNight === false ? 'day' : d.daylight),
     theme: oneOf(o.theme, ['auto', 'none', 'christmas', 'halloween'] as const, d.theme),
+    uiTheme: oneOf(o.uiTheme, ['light', 'dark'] as const, d.uiTheme),
     sound: bool(o.sound, d.sound),
     sounds: sanitizeSoundSettings(o.sounds),
     browserNotifications: bool(o.browserNotifications, d.browserNotifications),

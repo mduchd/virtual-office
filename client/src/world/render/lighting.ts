@@ -409,7 +409,16 @@ export class Lighting {
       if (prop.kind === 'lamp') {
         halo(street, prop.x, prop.y + 6, 120, 84, k);
         halo(street, prop.x, prop.y - 30, 30, 24, 0.7 * k);
-      } else if (prop.kind === 'totem') halo(cool, prop.x, prop.y - 4, 34, 22, 0.6 * k);
+      } else if (prop.kind === 'totem') {
+        halo(cool, prop.x, prop.y - 4, 34, 22, 0.6 * k);
+      } else if (prop.kind === 'vending') {
+        halo(cool, prop.x, prop.y - 8, 44, 32, 0.8 * k);
+        halo(street, prop.x, prop.y + 2, 38, 20, 0.5 * k);
+      } else if (prop.kind === 'fountain') {
+        halo(cool, prop.x, prop.y + 2, 58, 36, 0.45 * k);
+      } else if (prop.kind === 'bus_shelter') {
+        halo(street, prop.x - 2, prop.y - 10, 48, 34, 0.75 * k);
+      }
     }
     this.paintWindowSpill(scene, lit, k, halo, street);
     m.globalAlpha = 1;

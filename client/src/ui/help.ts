@@ -1,5 +1,4 @@
-// Ajuda ("?"): legenda de status e ícones, controles, o que o escritório mostra, contas e uso, e o Codex.
-import type { AgentStatus } from '../../../shared/types';
+import type { AgentStatus, Provider } from '../../../shared/types';
 import type { HelpSection } from './context';
 import { h, iconButton, prefersReducedMotion } from './dom';
 import { ICONS } from './icons';
@@ -246,8 +245,8 @@ export class HelpDialog {
       h(
         'ul',
         { class: 'ui-help__list' },
-        h('li', { text: tr('O chip colorido com a letra (C, D…) mostra de qual conta do Claude Code é cada agente: cada atalho de terminal usa uma pasta de configuração diferente.') }),
-        h('li', {}, accountSample('C', '#f08a3c'), tr(' Conta do Claude Code · '), accountSample('X', '#a77bf3', true), tr(' Conta do Codex (chip vazado, com o selo CODEX onde há espaço).')),
+        h('li', { text: tr('O chip colorido com o logotipo oficial mostra de qual ferramenta e conta é cada agente.') }),
+        h('li', {}, accountSample('C', '#f08a3c', 'claude'), tr(' Conta do Claude Code · '), accountSample('X', '#a77bf3', 'codex'), tr(' Conta do Codex (OpenAI) · '), accountSample('AG', '#8a5cf6', 'antigravity'), tr(' Conta do Antigravity (Google)')),
         h('li', {
           text: tr('No topo, cada conta mostra o uso da sessão de 5 horas e da semana. O ↻ indica quando cada limite reinicia (contagem regressiva se faltar menos de um dia). Verde abaixo de 50%, âmbar até 80% e vermelho a partir daí.'),
         }),
@@ -278,9 +277,23 @@ export class HelpDialog {
 }
 
 /** Um chip de conta de exemplo (legenda). */
-function accountSample(short: string, color: string, codex = false): HTMLElement {
+function accountSample(short: string, color: string, provider: Provider = 'claude'): HTMLElement {
   const chip = createAccountChip('sm');
-  updateAccountChip(chip, { id: short, short, name: codex ? 'Codex' : tr('Conta {0}', [short]), color, configDir: '', sessions: 0, usageStatus: 'disabled', ...(codex ? { provider: 'codex' as const } : {}) });
+  updateAccountChip(
+    chip,
+    {
+      id: short,
+      short,
+      name: provider === 'codex' ? 'Codex' : provider === 'antigravity' ? 'Antigravity' : tr('Conta {0}', [short]),
+      color,
+      configDir: '',
+      sessions: 0,
+      usageStatus: 'disabled',
+      provider,
+    },
+    short,
+    provider,
+  );
   chip.setAttribute('aria-hidden', 'true');
   return chip;
 }

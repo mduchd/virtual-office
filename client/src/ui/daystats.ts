@@ -21,6 +21,7 @@ import { seedDemoHistory } from '../../../shared/demo/daystats';
 import type { OfficeStore } from '../net/store';
 import type { UiComponent, UiContext } from './context';
 import { h, iconButton, setAttr, setHidden, setStyleVar, setText } from './dom';
+import { createAccountChip, updateAccountChip } from './widgets';
 import {
   accountCards,
   ALL_VISIBLE,
@@ -574,9 +575,8 @@ export class DayPanel implements UiComponent {
     const list = h('ol', { class: 'ui-day__waits' });
     for (const w of rows) {
       const acc = accounts.get(w.account);
-      const chip = h('span', { class: 'ui-acc-chip', text: acc?.short ?? '?', title: acc?.name ?? w.account });
-      setStyleVar(chip, '--acc', acc?.color ?? '#8b98b3');
-      if (this.isCodexAccount(w.account)) chip.dataset.provider = 'codex';
+      const chip = createAccountChip('sm');
+      updateAccountChip(chip, acc as any, w.account, this.isCodexAccount(w.account) ? 'codex' : undefined);
       list.append(
         h(
           'li',
@@ -618,8 +618,8 @@ export class DayPanel implements UiComponent {
     }
     const grid = h('div', { class: 'ui-day__accounts' });
     for (const a of cards) {
-      const chip = h('span', { class: 'ui-acc-chip ui-acc-chip--md', text: a.short, attrs: { 'aria-hidden': 'true', ...(a.codex ? { 'data-provider': 'codex' } : {}) } });
-      setStyleVar(chip, '--acc', a.color);
+      const chip = createAccountChip('md');
+      updateAccountChip(chip, this.ctx.account(a.id) ?? (a as any), a.id, a.codex ? 'codex' : undefined);
       const meter = h(
         'span',
         { class: 'ui-day__meter', role: 'img', attrs: { 'aria-label': a.shareText } },

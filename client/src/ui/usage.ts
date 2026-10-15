@@ -12,7 +12,7 @@ import type { UiContext } from './context';
 import { h, KeyedList, setAttr, setHidden, setStyleVar, setText, setTitle, setVariant } from './dom';
 import { FIVE_HOURS_MS, relativeTime, usageLevel, usageWindowView, WEEK_MS, type UsageWindowView } from './format';
 import { ICONS } from './icons';
-import { isCodex } from './provider';
+import { isAntigravity, isCodex } from './provider';
 import { usageRowFits } from './usage-row';
 import { createAccountChip, createProviderTag, updateAccountChip, updateProviderTag } from './widgets';
 import { tr } from '../../../shared/i18n';
@@ -21,6 +21,7 @@ export const SOURCE_LABEL: Record<NonNullable<AccountInfo['usage']>['source'], s
   cache: tr('cache do /usage do Claude Code'),
   statusline: tr('ao vivo (statusline do Claude Code)'),
   codex: tr('arquivos do Codex'),
+  antigravity: tr('transcripts do Antigravity'),
 };
 
 /** Origem para mostrar: o arquivo ao vivo pode ter sido gravado pelo mod do Habblaud ou pelo tap. */
@@ -167,17 +168,18 @@ export function cardState(a: Pick<AccountInfo, 'usage' | 'usageStatus'>): CardSt
   return a.usageStatus === 'ok' ? 'ok' : 'stale';
 }
 
-/** A idade dos números fica sempre à mostra? (Codex: só se renovam enquanto alguma sessão roda.) */
+/** A idade dos números fica sempre à mostra? (Codex/Antigravity: só se renovam enquanto alguma sessão roda.) */
 export function showsUsageAge(a: Pick<AccountInfo, 'usage' | 'usageStatus' | 'provider'>): boolean {
   if (!a.usage) return false;
   const state = cardState(a);
-  return state === 'stale' || (isCodex(a) && state !== 'empty');
+  return state === 'stale' || ((isCodex(a) || isAntigravity(a)) && state !== 'empty');
 }
 
-/** Linha embaixo do nome: e-mail; no Codex (sem e-mail), o plano; nas outras, a pasta. */
+/** Linha embaixo do nome: e-mail; no Codex/Antigravity (sem e-mail), o plano; nas outras, a pasta. */
 export function usageSubtitle(a: Pick<AccountInfo, 'email' | 'plan' | 'configDir' | 'provider'>): string {
   if (a.email) return a.email;
   if (isCodex(a)) return a.plan ? tr('plano {0}', [a.plan]) : 'Codex';
+  if (isAntigravity(a)) return a.plan ? tr('plano {0}', [a.plan]) : 'Antigravity';
   return a.configDir;
 }
 
@@ -185,7 +187,7 @@ export function usageSubtitle(a: Pick<AccountInfo, 'email' | 'plan' | 'configDir
 export function usageMessage(a: Pick<AccountInfo, 'usage' | 'usageStatus' | 'provider'>): [string, string] {
   const state = cardState(a);
   if (state === 'noquota') return [tr('sem cota'), tr('sem cota')];
-  if (isCodex(a)) return [tr('sem dados ainda'), tr('sem dados')];
+  if (isCodex(a) || isAntigravity(a)) return [tr('sem dados ainda'), tr('sem dados')];
   return [tr('sem dados de uso'), tr('sem dados')];
 }
 
@@ -199,6 +201,16 @@ export function codexUsageNote(a: Pick<AccountInfo, 'usage' | 'usageStatus' | 'p
   if (state === 'noquota')
     return tr('Na última leitura ({0}), a conta estava sem cota nem créditos para usar (ex.: os créditos do workspace acabaram). Não é 0%: o Codex não informou as janelas. Os números voltam com a próxima sessão.', [age]);
   return tr('O Codex só grava o uso enquanto alguma sessão roda: estes números são da última leitura ({0}).', [age]);
+}
+
+/** Explicação do cartão de uma conta do Antigravity (dica); '' nas outras. */
+export function antigravityUsageNote(a: Pick<AccountInfo, 'usage' | 'usageStatus' | 'provider'>, now: number): string {
+  if (!isAntigravity(a)) return '';
+  const u = a.usage;
+  const state = cardState(a);
+  if (state === 'empty') return tr('Não precisa instalar nada: os números chegam com as sessões do Antigravity.');
+  const age = u ? relativeTime(u.fetchedAt, now) : '';
+  return tr('O Antigravity calcula o uso a partir dos transcripts e sessões ativas: última leitura {0}.', [age]);
 }
 
 export class UsageCards {
@@ -337,12 +349,13 @@ export class UsageCards {
     const r = this.refs.get(card)!;
     const now = this.ctx.now();
     const codex = isCodex(a);
+    const antigravity = isAntigravity(a);
     updateAccountChip(r.chip, a);
     setStyleVar(card, '--acc', a.color);
     setText(r.name, a.name);
-    updateProviderTag(r.prov, codex ? 'codex' : 'claude', a.name);
+    updateProviderTag(r.prov, codex ? 'codex' : antigravity ? 'antigravity' : 'claude', a.name);
     setText(r.email, usageSubtitle(a));
-    setAttr(card, 'aria-label', tr('{0}{1}: uso do plano', [a.name, codex ? ' (Codex)' : '']));
+    setAttr(card, 'aria-label', tr('{0}{1}: uso do plano', [a.name, codex ? ' (Codex)' : antigravity ? ' (Antigravity)' : '']));
 
     const usage = a.usage;
     const state = cardState(a);
@@ -357,8 +370,8 @@ export class UsageCards {
     }
     r.meters.classList.toggle('is-dim', state !== 'ok');
 
-    // Idade dos números antigos no cabeçalho (no celular, um selo no chip faz esse papel). No Codex a idade fica
-    // sempre à mostra (os números só se renovam enquanto alguma sessão roda), discreta enquanto são recentes.
+    // Idade dos números antigos no cabeçalho (no celular, um selo no chip faz esse papel). No Codex e no Antigravity
+    // a idade fica à mostra, discreta enquanto são recentes.
     const stale = state === 'stale';
     const showAge = showsUsageAge(a);
     setHidden(r.state, !showAge);
@@ -371,11 +384,13 @@ export class UsageCards {
         r.state,
         codex
           ? tr('Atualizado {0}: o Codex só grava o uso enquanto alguma sessão roda.', [age])
+          : antigravity
+          ? tr('Atualizado {0}: calculado dos transcripts do Antigravity.', [age])
           : tr('Números de {0}: podem não refletir o uso atual.', [age]),
       );
     }
 
-    // Sem números: "sem dados de uso" + "Como ativar" (no Codex, "Como funciona": não há o que instalar). Sem cota:
+    // Sem números: "sem dados de uso" + "Como ativar" (no Codex/Antigravity, "Como funciona": não há o que instalar). Sem cota:
     // a mensagem, sem botão.
     const [msgLong, msgShort] = usageMessage(a);
     setText(r.msgLong, msgLong);
@@ -384,18 +399,30 @@ export class UsageCards {
     setHidden(r.how, state === 'noquota');
     r.msg.classList.toggle('is-noquota', state === 'noquota');
     setTitle(r.msg, state === 'noquota' ? codexUsageNote(a, now) : '');
-    setText(r.howLong, codex ? tr('Como funciona') : tr('Como ativar'));
-    setText(r.howShort, codex ? tr('Saber') : tr('Ativar'));
-    r.how.dataset.help = codex ? 'codex' : 'usage';
-    setTitle(r.how, codex ? tr('Como o uso do Codex chega ao Habblaud (abre a ajuda em “Codex”)') : tr('Como mostrar o uso desta conta (abre a ajuda em “Contas e uso”)'));
+    setText(r.howLong, codex || antigravity ? tr('Como funciona') : tr('Como ativar'));
+    setText(r.howShort, codex || antigravity ? tr('Saber') : tr('Ativar'));
+    r.how.dataset.help = codex ? 'codex' : antigravity ? 'antigravity' : 'usage';
+    setTitle(
+      r.how,
+      codex
+        ? tr('Como o uso do Codex chega ao Habblaud (abre a ajuda em “Codex”)')
+        : antigravity
+        ? tr('Como o uso do Antigravity chega ao Habblaud (abre a ajuda em “Antigravity”)')
+        : tr('Como mostrar o uso desta conta (abre a ajuda em “Contas e uso”)'),
+    );
     this.updateTip(r, a, state, five, week, now);
   }
 
   private updateTip(r: CardRefs, a: AccountInfo, state: CardState, five: UsageWindowView | null, week: UsageWindowView | null, now: number): void {
     const codex = isCodex(a);
-    setText(r.tipTitle, `${a.name}${codex && !/codex/i.test(a.name) ? ' · Codex' : ''}${a.plan ? tr(' · plano {0}', [a.plan]) : ''}`);
+    const antigravity = isAntigravity(a);
+    setText(
+      r.tipTitle,
+      `${a.name}${codex && !/codex/i.test(a.name) ? ' · Codex' : antigravity && !/antigravity/i.test(a.name) ? ' · Antigravity' : ''}${a.plan ? tr(' · plano {0}', [a.plan]) : ''}`,
+    );
     const rows: [string, string][] = [];
     if (codex) rows.push([tr('Ferramenta'), 'Codex']);
+    else if (antigravity) rows.push([tr('Ferramenta'), 'Antigravity']);
     if (a.email) rows.push(['E-mail', a.email]);
     if (a.organization) rows.push([tr('Organização'), a.organization]);
     if (a.plan) rows.push([tr('Plano'), a.plan]);
@@ -405,14 +432,14 @@ export class UsageCards {
     if (u && (u.fiveHour || u.sevenDay)) {
       rows.push([tr('Sessão de 5 h'), five?.summary ?? '—']);
       rows.push([tr('Semana'), week?.summary ?? '—']);
-      // Opus e Sonnet são janelas do Claude: no Codex não existem.
-      const opus = codex ? null : usageWindowView(u.sevenDayOpus, u.fetchedAt, now, WEEK_MS);
-      const sonnet = codex ? null : usageWindowView(u.sevenDaySonnet, u.fetchedAt, now, WEEK_MS);
+      // Opus e Sonnet são janelas do Claude: no Codex e Antigravity não existem.
+      const opus = codex || antigravity ? null : usageWindowView(u.sevenDayOpus, u.fetchedAt, now, WEEK_MS);
+      const sonnet = codex || antigravity ? null : usageWindowView(u.sevenDaySonnet, u.fetchedAt, now, WEEK_MS);
       if (opus) rows.push([tr('Opus (semana)'), opus.summary]);
       if (sonnet) rows.push([tr('Sonnet (semana)'), sonnet.summary]);
     }
     if (u && state === 'noquota') rows.push([tr('Cota'), tr('sem cota nem créditos agora')]);
-    if (u && (state !== 'empty' || codex)) {
+    if (u && (state !== 'empty' || codex || antigravity)) {
       rows.push([tr('Origem'), sourceLabel(u)]);
       rows.push([tr('Atualizado'), relativeTime(u.fetchedAt, now)]);
     }
@@ -421,6 +448,15 @@ export class UsageCards {
     // Codex: a explicação dele, sem o passo a passo do Claude Code (não há o que instalar para o uso).
     if (codex) {
       const note = codexUsageNote(a, now);
+      setText(r.tipNote, note);
+      setHidden(r.tipNote, !note);
+      setHidden(r.tipSetup, true);
+      return;
+    }
+
+    // Antigravity: a explicação dele, sem o passo a passo do Claude Code.
+    if (antigravity) {
+      const note = antigravityUsageNote(a, now);
       setText(r.tipNote, note);
       setHidden(r.tipNote, !note);
       setHidden(r.tipSetup, true);

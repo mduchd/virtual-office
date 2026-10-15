@@ -38,6 +38,7 @@ interface NodeRefs {
 
 export class Sidebar implements UiComponent {
   readonly el: HTMLElement;
+  readonly openBtn: HTMLButtonElement;
   private input: HTMLInputElement;
   private query = '';
   private filters: HTMLElement;
@@ -128,7 +129,8 @@ export class Sidebar implements UiComponent {
     this.empty = h('div', { class: 'ui-side__empty', hidden: true }, this.emptyText, this.clearBtn);
     this.scroller.append(this.empty);
 
-    const close = iconButton(ICONS.close, tr('Fechar painel lateral'), () => ctx.togglePanel('sidebar', false), 'ui-side__close');
+    const close = iconButton(ICONS.close, tr('Fechar painel lateral'), () => ctx.togglePanel('sidebar', false), 'ui-side__close ui-icon-btn--sm');
+    this.openBtn = iconButton(ICONS.chevronRight, tr('Painel lateral ( [ )'), () => ctx.togglePanel('sidebar', true), 'ui-side__open');
     this.el = h(
       'aside',
       { class: 'ui-panel ui-sidebar', attrs: { 'aria-label': tr('Salas e agentes'), id: 'ui-sidebar' } },

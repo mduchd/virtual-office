@@ -187,20 +187,10 @@ export function layoutProjectRoom(room: RoomInput, theme: RoomTheme): AreaLayout
   furn('plant_tall', 14, 2, tall, { order: 0.2 });
   if (north) spot('window', 12, 2, 'up', { dx: 12, dy: 1 });
   else furn('plant_small', 1, 2, pick(PLANTS_SMALL), { order: 0.22 });
-  const column = Math.floor(rng() * 3);
-  if (column === 0) {
-    furn('binder_shelf', 14, 4, undefined, { order: 0.3 });
-    furn('printer', 14, 6, undefined, { order: 0.32 });
-    furn('floor_lamp', 14, 8, undefined, { order: 0.34 });
-  } else if (column === 1) {
-    furn('binder_shelf', 14, 4, undefined, { order: 0.3 });
-    furn('binder_shelf', 14, 5, undefined, { order: 0.31 });
-    furn('floor_lamp', 14, 8, undefined, { order: 0.34 });
-  } else {
-    furn('floor_lamp', 14, 4, undefined, { order: 0.3 });
-    furn('filing_cabinet', 14, 6, undefined, { order: 0.32 });
-    furn('plant_tall', 14, 8, pick(PLANTS_TALL), { order: 0.34 });
-  }
+  furn('binder_shelf', 14, 4, undefined, { order: 0.3 });
+  furn('printer', 14, 5, undefined, { order: 0.32 });
+  furn('filing_cabinet', 14, 6, undefined, { order: 0.33 });
+  furn('plant_tall', 14, 8, tall, { order: 0.34 });
 
   // ---- cantos da parte de baixo (linhas 9–10; a passagem da porta, colunas 6–9, fica livre)
   corner(v.left, 'left');

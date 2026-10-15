@@ -17,6 +17,7 @@ export function dictationDone(lang: string | undefined): string {
   if (lang === 'pt') return tr('Ditado em português: confira o texto.');
   if (lang === 'en') return tr('Ditado em inglês: confira o texto.');
   if (lang === 'es') return tr('Ditado em espanhol: confira o texto.');
+  if (lang === 'vi') return tr('Ditado em vietnamita: confira o texto.');
   return tr('Ditado pronto: confira o texto.');
 }
 
