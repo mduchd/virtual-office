@@ -31,6 +31,7 @@ import { createPermissionRoutes } from './permissions/http';
 import { PermissionRegistry } from './permissions/registry';
 import { codexAccountOf } from './codex/http';
 import { createCodexQueueRunner, findCodexBin } from './messages/codex';
+import { createAntigravityMessageRunner, findAntigravityBin } from './messages/antigravity';
 import { createMessageRoutes } from './messages/http';
 import { MessageRegistry } from './messages/registry';
 import type { CodexLive } from './sources/codex/live';
@@ -224,6 +225,7 @@ const whisper = config.messages && !config.inDocker ? findWhisper() : undefined;
 const dictation = config.messages
   ? new DictationService(whisper && !('missing' in whisper) ? { transcriber: createWhisperTranscriber(whisper) } : {})
   : undefined;
+const antigravityBin = config.antigravity ? findAntigravityBin() : undefined;
 const messages = config.messages
   ? new MessageRegistry({
       office,
@@ -232,6 +234,9 @@ const messages = config.messages
       codex: {
         run: codexBin ? createCodexQueueRunner(codexBin) : undefined,
         homeOf: (account) => accounts.entriesOf('codex').find((e) => e.id === account)?.detected.configDir,
+      },
+      antigravity: {
+        run: antigravityBin ? createAntigravityMessageRunner(antigravityBin) : undefined,
       },
     })
   : undefined;

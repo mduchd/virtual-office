@@ -10,6 +10,8 @@ import { tr } from '../../../shared/i18n';
 export const PLUGIN_HINT = tr('Para mandar mensagens daqui: npm run mod:install (plugin habblaud-mensagens)');
 /** A mesma dica para um agente do Codex sem entregador (no modo Node o próprio servidor entrega). */
 export const CODEX_BRIDGE_HINT = tr('Para mandar mensagens ao Codex: com o Habblaud no Docker, deixe npm run codex:bridge rodando; no modo Node funciona sozinho');
+/** A mesma dica para um agente do Antigravity sem conexão. */
+export const ANTIGRAVITY_HINT = tr('Para mandar mensagens ao Antigravity, certifique-se de que a sessão está aberta');
 
 /**
  * - ready: dá para mandar (principal com o plugin conectado, recurso ligado, página local);
@@ -32,17 +34,22 @@ export function composerMode(agent: AgentInfo | undefined, env: ComposerEnv): Co
   if (agent?.kind === 'sub') return { kind: 'off', text: tr('Subagentes não recebem mensagens: escreva para o agente principal') };
   if (!agent || agent.status === 'offline' || agent.status === 'done') return { kind: 'off', text: tr('Sessão encerrada') };
   const codex = agent.provider === 'codex';
-  if (!env.enabled) return { kind: 'off', text: codex ? tr('Para responder, use o Codex') : tr('Para responder, use o terminal do Claude Code') };
+  const antigravity = agent.provider === 'antigravity';
+  if (!env.enabled) return { kind: 'off', text: codex ? tr('Para responder, use o Codex') : antigravity ? tr('Para responder, use o Antigravity') : tr('Para responder, use o terminal do Claude Code') };
   if (!env.local) return { kind: 'off', text: tr('Para mandar mensagens por aqui, abra o Habblaud por http://localhost (ou 127.0.0.1)') };
-  if (!agent.canMessage) return { kind: 'hint', text: codex ? CODEX_BRIDGE_HINT : PLUGIN_HINT };
+  if (!agent.canMessage) return { kind: 'hint', text: codex ? CODEX_BRIDGE_HINT : antigravity ? ANTIGRAVITY_HINT : PLUGIN_HINT };
   return { kind: 'ready' };
 }
 
 /** Dica embaixo da caixa (gaveta): como a mensagem entra na sessão. */
 export function composerTip(provider: Provider = 'claude'): string {
-  return provider === 'codex'
-    ? tr('Entra na fila da sessão e vira o próximo prompt quando o Codex terminar o que está fazendo. Enter manda; Shift+Enter quebra a linha.')
-    : tr('Entra na sessão como se você tivesse digitado. Enter manda; Shift+Enter quebra a linha.');
+  if (provider === 'codex') {
+    return tr('Entra na fila da sessão e vira o próximo prompt quando o Codex terminar o que está fazendo. Enter manda; Shift+Enter quebra a linha.');
+  }
+  if (provider === 'antigravity') {
+    return tr('Entra na sessão do Antigravity como mensagem. Enter manda; Shift+Enter quebra a linha.');
+  }
+  return tr('Entra na sessão como se você tivesse digitado. Enter manda; Shift+Enter quebra a linha.');
 }
 
 /** O que sai da caixa: o texto como foi digitado, sem os espaços e linhas em branco do fim. */
