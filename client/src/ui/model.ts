@@ -40,8 +40,10 @@ export function activityFallback(agent: Pick<AgentInfo, 'status' | 'waitingFor'>
 
 /** Selo de papel: "Agente principal" ou o tipo do subagente ("Explore", "Plan"...). */
 export function roleLabel(agent: Pick<AgentInfo, 'kind' | 'role'>): string {
-  if (agent.kind === 'main') return agent.role || tr('Agente principal');
-  return agent.role || tr('Subagente');
+  const role = agent.role?.trim();
+  if (role) return tr(role);
+  if (agent.kind === 'main') return tr('Agente principal');
+  return tr('Subagente');
 }
 
 /** Agente ainda "presente" (não está indo embora). */

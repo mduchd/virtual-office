@@ -4944,6 +4944,8 @@
 
 .ui-term__title {
   color: #c9d1e2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ui-term__title strong {
@@ -4964,6 +4966,8 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: 1ch;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ui-term__in--command .ui-term__more {
@@ -4978,10 +4982,14 @@
 .ui-term__in--json,
 .ui-term__in--text {
   color: var(--term-dim);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ui-term__in--diff {
   padding: 4px 0;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .ui-term__in--diff .ui-term__more {
@@ -4991,6 +4999,8 @@
 .ui-term__dl {
   display: block;
   padding: 0 9px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ui-term__dl.is-add {
@@ -5027,6 +5037,8 @@
 
 .ui-term__out {
   min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .ui-term__empty,

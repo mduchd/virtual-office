@@ -667,7 +667,7 @@ export class TerminalPanel implements UiComponent, TerminalControl {
     const findKey = mac ? '⌘F' : 'Ctrl+F';
     const icon = h('span', { class: 'ui-term__icon', attrs: { 'aria-hidden': 'true' } });
     icon.innerHTML = ICONS.terminal;
-    this.kindEl = h('span', { class: 'ui-term__kind', text: 'terminal' });
+    this.kindEl = h('span', { class: 'ui-term__kind', text: tr('terminal') });
     this.accEl = createAccountChip('sm');
     this.accEl.hidden = true;
     this.nameEl = h('strong', { class: 'ui-term__name' });
@@ -858,7 +858,7 @@ export class TerminalPanel implements UiComponent, TerminalControl {
     if (live) this.last = live;
     const a = this.last;
     const name = a?.name ?? tr('Agente');
-    setText(this.kindEl, 'terminal');
+    setText(this.kindEl, tr('terminal'));
     setHidden(this.accEl, true);
     setText(this.nameEl, name);
     setTitle(this.nameEl, '');
@@ -867,7 +867,7 @@ export class TerminalPanel implements UiComponent, TerminalControl {
     setHidden(this.roleEl, !a);
     if (a) setVariant(this.roleEl, 'ui-role--', a.kind);
     const room = a ? this.ctx.store.room(a.roomId) : undefined;
-    setText(this.roomEl, room ? tr('sala {0}', [room.name]) : '');
+    setText(this.roomEl, room ? `· ${tr('sala {0}', [room.name])}` : '');
     setTitle(this.roomEl, room?.path ?? '');
     setHidden(this.roomEl, !room);
     setAttr(this.el, 'aria-label', tr('Terminal de {0}', [name]));
