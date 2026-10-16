@@ -151,9 +151,52 @@ export function createUI(root: HTMLElement, store: OfficeStore, world: WorldApi)
 
   // ---------------------------------------------------------------- componentes
   const sound = new SoundControl(ctx);
-  ctx.playUiSound = (kind = 'notification') => {
+  ctx.playUiSound = (kind = 'ui_click') => {
     void sound.board.unlock().then(() => sound.board.play(kind));
   };
+
+  // Feedback sonoro global para cliques na UI (botões, switches, abas, cards)
+  root.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (!ctx.prefs.sound) return;
+      const target = (e.target as HTMLElement | null)?.closest?.(
+        'button, a, input, select, textarea, [role="button"], [role="switch"], [role="tab"], [role="checkbox"], [data-sound], .ui-chip, .ui-pill, .ui-agent-row, .ui-room-card, .ui-tree__item'
+      ) as HTMLElement | null;
+      if (!target) return;
+
+      const snd = target.getAttribute('data-sound');
+      if (snd === 'none') return;
+      if (snd) {
+        ctx.playUiSound?.(snd as any);
+        return;
+      }
+
+      if (target.getAttribute('role') === 'switch' || target.getAttribute('role') === 'checkbox' || (target as HTMLInputElement).type === 'checkbox') {
+        const isChecked = target.getAttribute('aria-checked') === 'true' || target.getAttribute('aria-pressed') === 'true' || (target as HTMLInputElement).checked;
+        ctx.playUiSound?.(!isChecked ? 'ui_toggle_on' : 'ui_toggle_off');
+        return;
+      }
+
+      if (target.getAttribute('role') === 'tab' || target.classList.contains('ui-tab') || target.classList.contains('ui-term-tab')) {
+        ctx.playUiSound?.('ui_tab');
+        return;
+      }
+
+      if (target.classList.contains('ui-agent-row') || target.classList.contains('ui-room-card') || target.classList.contains('ui-tree__item')) {
+        ctx.playUiSound?.('ui_select');
+        return;
+      }
+
+      if (target.classList.contains('ui-close') || target.getAttribute('aria-label')?.toLowerCase().includes('fechar') || target.getAttribute('aria-label')?.toLowerCase().includes('close')) {
+        ctx.playUiSound?.('ui_close');
+        return;
+      }
+
+      ctx.playUiSound?.('ui_click');
+    },
+    { capture: true, passive: true },
+  );
   const notifier = new Notifier(ctx, sound.board);
   topbar = new TopBar(ctx);
   sidebar = new Sidebar(ctx);

@@ -42,7 +42,8 @@ export type DaylightMode = 'auto' | 'day' | 'night';
 
 /** Sons do ambiente que o mundo sugere (quem toca, e se toca, é a UI). */
 export type SoundCueKind = 'keys' | 'elevator' | 'pingpong' | 'table' | 'arcade'
-  | 'footstep' | 'chair' | 'coffee';
+  | 'footstep' | 'chair' | 'coffee' | 'water' | 'fridge' | 'whiteboard' | 'shelf'
+  | 'ui_select' | 'ui_click' | 'pop';
 
 export interface SoundCue {
   kind: SoundCueKind;

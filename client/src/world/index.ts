@@ -176,6 +176,25 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
       }
     }
     if (best) return { type: 'agent', id: best };
+    // Objetos interativos (cafeteira, fliperama, pingue-pongue, bebedouro, lousa, estante, geladeira)
+    for (const spot of sim.spots.all()) {
+      const sx = (spot.tx + 0.5) * TILE;
+      const sy = (spot.ty + 0.5) * TILE;
+      if (Math.hypot(w.x - sx, w.y - sy) < TILE * 0.9) {
+        if (
+          spot.kind === 'coffee' ||
+          spot.kind === 'water' ||
+          spot.kind === 'arcade' ||
+          spot.kind === 'pingpong' ||
+          spot.kind === 'snack' ||
+          spot.kind === 'fridge' ||
+          spot.kind === 'whiteboard' ||
+          spot.kind === 'shelf'
+        ) {
+          return { type: 'spot', id: spot.id, spotKind: spot.kind, x: sx, y: sy };
+        }
+      }
+    }
     const tx = Math.floor(w.x / TILE);
     const ty = Math.floor(w.y / TILE);
     for (const room of sim.rooms.values()) if (room.present && !room.ghost && inRect(room.layout.rect, tx, ty)) return { type: 'room', id: room.id };
@@ -191,16 +210,63 @@ export function createWorld(canvas: HTMLCanvasElement, store: OfficeStore): Worl
 
   const detachInput = attachInput(canvas, camera, {
     pick,
-    click: (hit) => setSelection(hit),
+    click: (hit) => {
+      const minZ = Math.min(camera.minZoom, 1);
+      const normZoom = Math.max(0, Math.min(1, (camera.zoom - minZ) / (5.0 - minZ)));
+      const near = Math.max(0.15, Math.min(1, 0.15 + 0.85 * Math.pow(normZoom, 1.2)));
+      const panX = (wx: number) => {
+        const a = camera.screenToWorld(0, 0);
+        const b = camera.screenToWorld(camera.viewW, camera.viewH);
+        const half = Math.max(1, (b.x - a.x) / 2);
+        return Math.max(-0.7, Math.min(0.7, ((wx - (a.x + b.x) / 2) / half) * 0.7));
+      };
+
+      if (hit?.type === 'agent') {
+        setSelection(hit);
+        const ch = sim.chars.get(hit.id);
+        const px = ch ? ch.x : camera.x;
+        soundCbs.forEach((cb) => cb({ kind: 'ui_select', gain: Math.max(0.4, near), pan: panX(px) }));
+      } else if (hit?.type === 'spot') {
+        const cueKind =
+          hit.spotKind === 'water' ? 'water' :
+          hit.spotKind === 'coffee' ? 'coffee' :
+          hit.spotKind === 'arcade' ? 'arcade' :
+          hit.spotKind === 'pingpong' ? 'pingpong' :
+          hit.spotKind === 'snack' || hit.spotKind === 'fridge' ? 'fridge' :
+          hit.spotKind === 'whiteboard' ? 'whiteboard' :
+          hit.spotKind === 'shelf' ? 'shelf' : 'ui_click';
+        soundCbs.forEach((cb) => cb({ kind: cueKind, gain: Math.max(0.4, near), pan: panX(hit.x) }));
+      } else if (hit?.type === 'room') {
+        setSelection(hit);
+        soundCbs.forEach((cb) => cb({ kind: 'ui_click', gain: Math.max(0.3, near * 0.8), pan: 0 }));
+      } else {
+        setSelection(null);
+      }
+    },
     doubleClick: (hit) => {
       if (hit?.type === 'agent') {
         setSelection(hit);
         focusAgent(hit.id, { follow: true });
-      } else if (hit?.type === 'room') focusRoom(hit.id);
+        soundCbs.forEach((cb) => cb({ kind: 'pop', gain: 0.9, pan: 0 }));
+      } else if (hit?.type === 'room') {
+        focusRoom(hit.id);
+        soundCbs.forEach((cb) => cb({ kind: 'ui_click', gain: 0.7, pan: 0 }));
+      }
     },
     hover: (sx, sy, inside) => {
       mouse = inside ? { x: sx, y: sy } : null;
-      if (!inside) setHover(null);
+      if (!inside) {
+        setHover(null);
+        return;
+      }
+      const hit = pick(sx, sy);
+      if (hit?.type === 'agent') {
+        setHover(hit.id);
+      } else if (hit?.type === 'spot') {
+        canvas.style.cursor = 'pointer';
+      } else {
+        setHover(null);
+      }
     },
     interact: () => {
       userMoved = true;

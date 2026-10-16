@@ -2622,4 +2622,8 @@ export const ES: Readonly<Record<string, string>> = {
   "busca": "búsqueda",
   "Buscando: {0}": "Buscando: {0}",
   "Acessando {0}": "Accediendo a {0}",
+
+  // Sons da UI
+  "Cliques": "Clics",
+  "Sons de cliques, botões e interações na interface.": "Sonidos para clics, botones e interacciones de la interfaz.",
 };

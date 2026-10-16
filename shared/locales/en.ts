@@ -2648,4 +2648,8 @@ export const EN: Readonly<Record<string, string>> = {
   "busca": "search",
   "Buscando: {0}": "Searching: {0}",
   "Acessando {0}": "Accessing {0}",
+
+  // Sons da UI
+  "Cliques": "Clicks",
+  "Sons de cliques, botões e interações na interface.": "Sounds for clicks, buttons, and UI interactions.",
 };

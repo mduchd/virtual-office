@@ -3,11 +3,25 @@
 import type { SoundCueKind } from '../world/api';
 
 /** Categorias que o usuário liga/desliga nas configurações. */
-export type SoundCategory = 'alerts' | 'keys' | 'elevator' | 'social' | 'ambient';
-/** Sons: o sino de "precisa de você", o estalo de tarefa concluída e os do ambiente. */
-export type SoundKind = 'chime' | 'pop' | 'notification' | SoundCueKind;
+export type SoundCategory = 'alerts' | 'keys' | 'elevator' | 'social' | 'ambient' | 'ui';
+/** Sons: o sino de "precisa de você", o estalo de tarefa concluída, os do ambiente e os da UI. */
+export type SoundKind =
+  | 'chime'
+  | 'pop'
+  | 'notification'
+  | 'ui_click'
+  | 'ui_toggle_on'
+  | 'ui_toggle_off'
+  | 'ui_tab'
+  | 'ui_close'
+  | 'ui_select'
+  | 'water'
+  | 'fridge'
+  | 'whiteboard'
+  | 'shelf'
+  | SoundCueKind;
 
-export const SOUND_CATEGORIES: readonly SoundCategory[] = ['alerts', 'keys', 'elevator', 'social', 'ambient'];
+export const SOUND_CATEGORIES: readonly SoundCategory[] = ['alerts', 'keys', 'elevator', 'social', 'ambient', 'ui'];
 
 export const CATEGORY_OF: Readonly<Record<SoundKind, SoundCategory>> = {
   chime: 'alerts',
@@ -21,6 +35,16 @@ export const CATEGORY_OF: Readonly<Record<SoundKind, SoundCategory>> = {
   footstep: 'ambient',
   chair: 'ambient',
   coffee: 'ambient',
+  water: 'ambient',
+  fridge: 'ambient',
+  whiteboard: 'ambient',
+  shelf: 'ambient',
+  ui_click: 'ui',
+  ui_toggle_on: 'ui',
+  ui_toggle_off: 'ui',
+  ui_tab: 'ui',
+  ui_close: 'ui',
+  ui_select: 'ui',
 };
 
 /** Intervalo mínimo (ms) entre dois sons do mesmo canal. */
@@ -36,6 +60,16 @@ export const MIN_GAP_MS: Readonly<Record<SoundKind, number>> = {
   footstep: 180,
   chair: 300,
   coffee: 1_000,
+  water: 1_000,
+  fridge: 1_000,
+  whiteboard: 800,
+  shelf: 800,
+  ui_click: 35,
+  ui_toggle_on: 50,
+  ui_toggle_off: 50,
+  ui_tab: 80,
+  ui_close: 80,
+  ui_select: 60,
 };
 
 /** O sino e o estalo dividem o mesmo canal (um não atropela o outro). */
@@ -51,6 +85,16 @@ const CHANNEL: Readonly<Record<SoundKind, string>> = {
   footstep: 'footstep',
   chair: 'chair',
   coffee: 'coffee',
+  water: 'coffee',
+  fridge: 'coffee',
+  whiteboard: 'ambient',
+  shelf: 'ambient',
+  ui_click: 'ui_click',
+  ui_toggle_on: 'ui_toggle',
+  ui_toggle_off: 'ui_toggle',
+  ui_tab: 'ui_tab',
+  ui_close: 'ui_close',
+  ui_select: 'ui_select',
 };
 
 /** Teto global: no máximo isto de sons por segundo (o sino de alerta sempre passa). */
@@ -64,9 +108,10 @@ export interface SoundSettings {
   elevator: boolean;
   social: boolean;
   ambient: boolean;
+  ui: boolean;
 }
 
-export const DEFAULT_SOUND_SETTINGS: SoundSettings = { volume: 0.6, alerts: true, keys: true, elevator: true, social: true, ambient: true };
+export const DEFAULT_SOUND_SETTINGS: SoundSettings = { volume: 0.8, alerts: true, keys: true, elevator: true, social: true, ambient: true, ui: true };
 
 /** Valida campo a campo (preferência corrompida cai no padrão). */
 export function sanitizeSoundSettings(raw: unknown): SoundSettings {
@@ -81,6 +126,7 @@ export function sanitizeSoundSettings(raw: unknown): SoundSettings {
     elevator: bool(o.elevator, d.elevator),
     social: bool(o.social, d.social),
     ambient: bool(o.ambient, d.ambient),
+    ui: bool(o.ui, d.ui),
   };
 }
 
@@ -117,7 +163,7 @@ export class SoundScheduler {
     const prev = this.last.get(ch);
     if (prev !== undefined && now - prev < MIN_GAP_MS[kind]) return null;
     while (this.recent.length && now - this.recent[0] >= 1_000) this.recent.shift();
-    if (kind !== 'chime' && this.recent.length >= MAX_PER_SECOND) return null;
+    if (kind !== 'chime' && !kind.startsWith('ui_') && this.recent.length >= MAX_PER_SECOND) return null;
     const g = masterGain(this.settings.volume) * Math.min(1, Math.max(0, opts.gain ?? 1));
     if (g <= 0.0005) return null;
     this.last.set(ch, now);

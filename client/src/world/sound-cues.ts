@@ -43,14 +43,20 @@ export class SoundCues {
     const a = this.camera.screenToWorld(0, 0);
     const b = this.camera.screenToWorld(this.camera.viewW, this.camera.viewH);
     const view = { x0: a.x, y0: a.y, x1: b.x, y1: b.y };
-    // de longe (zoom baixo) tudo fica mais baixinho
-    const near = Math.max(0.45, Math.min(1, 0.25 + this.camera.zoom * 0.25));
-    this.elevators(view, emit);
+    // Zoom curve: từ zoom xa (overview ~0.5x - 1x) đến zoom gần (4x - 6x)
+    // Zoom xa thì âm thanh bé, zoom gần thì âm thanh lớn dần và chi tiết
+    const minZ = Math.min(this.camera.minZoom, 1);
+    const maxZ = 5.0;
+    const normZoom = Math.max(0, Math.min(1, (this.camera.zoom - minZ) / (maxZ - minZ)));
+    // Đường cong lũy thừa mượt mà: xa nhất ~0.06, gần nhất 1.0
+    const near = Math.max(0.06, Math.min(1, 0.06 + 0.94 * Math.pow(normZoom, 1.35)));
+
+    this.elevators(view, near, emit);
     this.keys(now, view, near, emit);
     this.social(now, view, near, emit);
     this.footsteps(now, view, near, emit);
     this.chairs(view, near, emit);
-    this.coffee(now, view, emit);
+    this.coffee(now, view, near, emit);
   }
 
   private pan(x: number, v: ViewRect): number {
@@ -63,14 +69,15 @@ export class SoundCues {
   }
 
   /** "Ding" quando a porta começa a abrir; fora da tela, mais baixo (ainda avisa que alguém chegou). */
-  private elevators(view: ViewRect, emit: (cue: SoundCue) => void): void {
+  private elevators(view: ViewRect, near: number, emit: (cue: SoundCue) => void): void {
     this.sim.elevators.forEach((e, i) => {
       const prev = this.doors[i];
       this.doors[i] = e.door;
       if (prev === undefined || prev > 0.01 || e.door <= 0.01) return;
       const spot = this.sim.spots.get(e.spotId);
       if (!spot) return;
-      emit({ kind: 'elevator', gain: this.inView(spot.x, spot.y, view, 24) ? 1 : 0.5, pan: this.pan(spot.x, view) });
+      const baseGain = this.inView(spot.x, spot.y, view, 24) ? 1 : 0.45;
+      emit({ kind: 'elevator', gain: baseGain * near, pan: this.pan(spot.x, view) });
     });
   }
 
@@ -162,8 +169,8 @@ export class SoundCues {
     }
   }
 
-  /** Cafeteira: emite quando personagem pega café/água. */
-  private coffee(now: number, view: ViewRect, emit: (cue: SoundCue) => void): void {
+  /** Cafeteira / Cây nước: emite quando personagem pega café/água. */
+  private coffee(now: number, view: ViewRect, near: number, emit: (cue: SoundCue) => void): void {
     if (now < this.nextCoffeeAt) return;
     for (const ch of this.sim.chars.values()) {
       if (ch.held !== 'coffee' && ch.held !== 'water') continue;
@@ -174,7 +181,7 @@ export class SoundCues {
       this.coffeeHeld.set(ch.id, cur);
       if (prev === cur || prev === undefined) continue; // só quando muda
       this.nextCoffeeAt = now + 4_000;
-      emit({ kind: 'coffee', gain: 0.65, pan: this.pan(ch.x, view) });
+      emit({ kind: ch.held === 'water' ? 'water' : 'coffee', gain: 0.85 * near, pan: this.pan(ch.x, view) });
       break;
     }
     for (const id of this.coffeeHeld.keys()) {

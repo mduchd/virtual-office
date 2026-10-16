@@ -11,6 +11,7 @@ const CATEGORY_UI: Readonly<Record<SoundCategory, { label: string; hint: string;
   elevator: { label: tr('Elevador'), hint: tr('"Ding" quando alguém chega ou vai embora.'), sample: 'elevator' },
   social: { label: tr('Rodas'), hint: tr('Pingue-pongue e fliperama no lounge.'), sample: 'pingpong' },
   ambient: { label: tr('Ambiente'), hint: tr('Passos, cadeiras e máquina de café.'), sample: 'footstep' },
+  ui: { label: tr('Cliques'), hint: tr('Sons de cliques, botões e interações na interface.'), sample: 'ui_click' },
 };
 
 export class SoundSettingsGroup {

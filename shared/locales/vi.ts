@@ -2672,6 +2672,10 @@ export const VI: Readonly<Record<string, string>> = {
   "Managing subagents": "Quản lý subagent",
   "Invoking subagent": "Gọi subagent",
   "Sending message": "Gửi tin nhắn",
+
+  // Sons da UI
+  "Cliques": "Nhấp chuột",
+  "Sons de cliques, botões e interações na interface.": "Âm thanh khi nhấp nút, đổi tab và tương tác giao diện.",
 };
 
 

@@ -31,14 +31,18 @@ export class SoundBoard {
         if (!Ctor) return Promise.resolve();
         const ac = new Ctor();
 
-        // Compressor (saída seca → destination)
+        // Compressor (saída seca → master boost → destination)
         const comp = ac.createDynamicsCompressor();
         comp.threshold.value = -16;
         comp.knee.value = 10;
-        comp.ratio.value = 5;
+        comp.ratio.value = 4;
         comp.attack.value = 0.003;
         comp.release.value = 0.12;
-        comp.connect(ac.destination);
+
+        const masterBoost = ac.createGain();
+        masterBoost.gain.value = 1.6;
+        comp.connect(masterBoost);
+        masterBoost.connect(ac.destination);
         this.dry = comp;
 
         // Reverb send (20% wet)
@@ -48,7 +52,7 @@ export class SoundBoard {
         convolver.buffer = makeRoomIR(ac);
         const reverbOut = ac.createGain();
         reverbOut.gain.value = 0.85;
-        reverbSend.connect(convolver).connect(reverbOut).connect(ac.destination);
+        reverbSend.connect(convolver).connect(reverbOut).connect(masterBoost);
         this.reverbSend = reverbSend;
 
         // BGM do lounge

@@ -79,7 +79,7 @@ describe('preferências', () => {
     expect(DEFAULT_PREFS.sound).toBe(true);
     const p = sanitizePrefs({ sound: false, sounds: { volume: 3, keys: false, elevator: 'sim' } });
     expect(p.sound).toBe(false);
-    expect(p.sounds).toEqual({ volume: 1, alerts: true, keys: false, elevator: true, social: true, ambient: true });
+    expect(p.sounds).toEqual({ volume: 1, alerts: true, keys: false, elevator: true, social: true, ambient: true, ui: true });
     expect(sanitizePrefs({ sounds: { volume: -1 } }).sounds.volume).toBe(0);
     expect(sanitizePrefs({ sounds: 'alto' }).sounds).toEqual(DEFAULT_PREFS.sounds);
   });
