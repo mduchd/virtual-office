@@ -42,10 +42,10 @@ function canExecute(p: string): boolean {
 }
 
 /**
- * Nome do binário no PATH. No Windows, só o `codex.exe`: o `codex` sem extensão e o `codex.cmd` que o npm põe ao lado
- * são scripts, e o execFile (sem shell) não os roda.
+ * Nomes do binário no PATH. No Windows, `codex.cmd` (npm), `codex.exe` ou `codex.bat`.
  */
-export const CODEX_BIN_NAME = process.platform === 'win32' ? 'codex.exe' : 'codex';
+export const CODEX_BIN_NAMES = process.platform === 'win32' ? ['codex.cmd', 'codex.exe', 'codex.bat', 'codex'] : ['codex'];
+export const CODEX_BIN_NAME = CODEX_BIN_NAMES[0];
 
 /** Binário do Codex: HABBLAUD_CODEX_BIN (caminho de um executável) ou `codex` no PATH. undefined = não achou. */
 export function findCodexBin(env: NodeJS.ProcessEnv, isExecutable: (p: string) => boolean = canExecute): string | undefined {
@@ -53,8 +53,10 @@ export function findCodexBin(env: NodeJS.ProcessEnv, isExecutable: (p: string) =
   if (explicit) return isExecutable(explicit) ? explicit : undefined;
   for (const dir of (env.PATH ?? '').split(delimiter)) {
     if (!dir || !isAbsolute(dir)) continue;
-    const p = join(dir, CODEX_BIN_NAME);
-    if (isExecutable(p)) return p;
+    for (const name of CODEX_BIN_NAMES) {
+      const p = join(dir, name);
+      if (isExecutable(p)) return p;
+    }
   }
   return undefined;
 }
@@ -83,7 +85,18 @@ export function createCodexQueueRunner(bin: string, opts: { env?: NodeJS.Process
       if (!isAbsolute(job.codexHome)) return done({ ok: false, error: tr('pasta da conta do Codex inválida') });
       const env = { ...(opts.env ?? process.env), CODEX_HOME: job.codexHome };
       try {
-        execFile(bin, queueArgs(job.thread, job.text), { env, timeout: timeoutMs, maxBuffer: 256 * 1024, windowsHide: true, encoding: 'utf8' }, (err, _stdout, stderr) => {
+        execFile(
+          bin,
+          queueArgs(job.thread, job.text),
+          {
+            env,
+            timeout: timeoutMs,
+            maxBuffer: 256 * 1024,
+            windowsHide: true,
+            encoding: 'utf8',
+            shell: process.platform === 'win32' && (bin.endsWith('.cmd') || bin.endsWith('.bat')),
+          },
+          (err, _stdout, stderr) => {
           if (!err) return done({ ok: true });
           const e = err as NodeJS.ErrnoException & { killed?: boolean };
           if (e.killed) return done({ ok: false, error: tr('o codex queue não respondeu em {0} s (a mensagem pode ter entrado na fila mesmo assim)', [Math.round(timeoutMs / 1_000)]) });
