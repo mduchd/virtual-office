@@ -25,6 +25,11 @@ export class RemotePanel {
     error: null,
   };
 
+  private isEditingCreds = false;
+  private savingCreds = false;
+  private credsError: string | null = null;
+  private credsSuccess = false;
+
   private readonly statusPill: HTMLElement;
   private readonly bodyContent: HTMLElement;
   private pollInterval?: number;
@@ -207,6 +212,7 @@ export class RemotePanel {
             h('li', { text: '✓ ' + tr('Enviar mensagens e instruções para os agentes') }),
             h('li', { text: '✓ ' + tr('Criar novos agentes remotamente') }),
           ),
+          this.renderCredsBox(),
           h('button', {
             class: 'ui-btn ui-btn--primary ui-remote-panel__start-btn',
             type: 'button',
@@ -250,13 +256,6 @@ export class RemotePanel {
       copyBtn,
     );
 
-    const creds = h(
-      'div',
-      { class: 'ui-remote-panel__creds' },
-      h('div', { class: 'ui-remote-panel__cred-item' }, h('span', { text: tr('Usuário: ') }), h('strong', { text: this.statusState.user })),
-      h('div', { class: 'ui-remote-panel__cred-item' }, h('span', { text: tr('Senha: ') }), h('strong', { text: this.statusState.pass })),
-    );
-
     const stopBtn = h('button', {
       class: 'ui-btn ui-btn--danger',
       type: 'button',
@@ -271,9 +270,142 @@ export class RemotePanel {
         h('p', { class: 'ui-remote-panel__scan-tip', text: '📸 ' + tr('Escaneie o QR Code com a câmera do celular:') }),
         qrContainer,
         urlRow,
-        creds,
+        this.renderCredsBox(),
         stopBtn,
       ),
     );
+  }
+
+  private renderCredsBox(): HTMLElement {
+    const box = h('div', { class: 'ui-remote-panel__creds' });
+
+    if (this.isEditingCreds) {
+      const userInput = h('input', {
+        class: 'ui-rename__input ui-remote-panel__cred-input',
+        attrs: { type: 'text', value: this.statusState.user, placeholder: tr('Usuário') },
+      }) as HTMLInputElement;
+
+      const passInput = h('input', {
+        class: 'ui-rename__input ui-remote-panel__cred-input',
+        attrs: { type: 'text', value: this.statusState.pass, placeholder: tr('Senha') },
+      }) as HTMLInputElement;
+
+      const saveBtn = h('button', {
+        class: 'ui-btn ui-btn--primary ui-btn--sm',
+        type: 'button',
+        text: this.savingCreds ? tr('Salvando…') : tr('Salvar'),
+        attrs: this.savingCreds ? { disabled: 'disabled' } : {},
+        on: {
+          click: async () => {
+            const user = userInput.value.trim();
+            const pass = passInput.value.trim();
+            if (!user) {
+              this.credsError = tr('O nome de usuário não pode ficar vazio');
+              this.render();
+              return;
+            }
+            if (!pass || pass.length < 4) {
+              this.credsError = tr('A senha deve ter pelo menos 4 caracteres');
+              this.render();
+              return;
+            }
+            this.savingCreds = true;
+            this.credsError = null;
+            this.render();
+            try {
+              const res = await fetch('/api/tunnel/credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user, pass }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || tr('Erro ao atualizar'));
+              this.statusState = data;
+              this.isEditingCreds = false;
+              this.credsSuccess = true;
+              setTimeout(() => {
+                this.credsSuccess = false;
+                this.render();
+              }, 3000);
+            } catch (err: any) {
+              this.credsError = err.message || String(err);
+            } finally {
+              this.savingCreds = false;
+              this.render();
+            }
+          },
+        },
+      });
+
+      const cancelBtn = h('button', {
+        class: 'ui-btn ui-btn--sm',
+        type: 'button',
+        text: tr('Cancelar'),
+        attrs: this.savingCreds ? { disabled: 'disabled' } : {},
+        on: {
+          click: () => {
+            this.isEditingCreds = false;
+            this.credsError = null;
+            this.render();
+          },
+        },
+      });
+
+      const errEl = this.credsError
+        ? h('p', { class: 'ui-remote-panel__creds-err', text: `⚠️ ${this.credsError}` })
+        : undefined;
+
+      box.append(
+        h(
+          'div',
+          { class: 'ui-remote-panel__edit-form' },
+          h('div', { class: 'ui-remote-panel__edit-field' }, h('label', { text: tr('Usuário: ') }), userInput),
+          h('div', { class: 'ui-remote-panel__edit-field' }, h('label', { text: tr('Senha: ') }), passInput),
+          ...(errEl ? [errEl] : []),
+          h('div', { class: 'ui-remote-panel__edit-actions' }, saveBtn, cancelBtn),
+        ),
+      );
+      return box;
+    }
+
+    const editBtn = h('button', {
+      class: 'ui-btn ui-btn--sm ui-remote-panel__edit-btn',
+      type: 'button',
+      text: '✏️ ' + tr('Alterar'),
+      attrs: { title: tr('Alterar usuário e senha') },
+      on: {
+        click: () => {
+          this.isEditingCreds = true;
+          this.credsError = null;
+          this.render();
+        },
+      },
+    });
+
+    const userRow = h(
+      'div',
+      { class: 'ui-remote-panel__cred-item' },
+      h('span', { text: tr('Usuário: ') }),
+      h('strong', { text: this.statusState.user }),
+    );
+
+    const passRow = h(
+      'div',
+      { class: 'ui-remote-panel__cred-item' },
+      h('span', { text: tr('Senha: ') }),
+      h('strong', { text: this.statusState.pass }),
+    );
+
+    const successEl = this.credsSuccess
+      ? h('div', { class: 'ui-remote-panel__creds-ok', text: '✓ ' + tr('Credenciais atualizadas com sucesso!') })
+      : undefined;
+
+    box.append(
+      userRow,
+      passRow,
+      ...(successEl ? [successEl] : []),
+      h('div', { class: 'ui-remote-panel__cred-foot' }, editBtn),
+    );
+    return box;
   }
 }

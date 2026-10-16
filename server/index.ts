@@ -10,7 +10,8 @@ import { AccountsService } from './accounts/service';
 import { isTruthy, loadConfig, loadDotEnv, messagesOffReason, terminalOffReason } from './config';
 import { createApiHandler, sendJson } from './http/app';
 import { createRequestGuard, isLoopbackHost } from './http/guard';
-import { createRemoteGate, isRemoteRequest, loadSecret, parseRemoteConfig, RemoteSessions, startRemoteListener, type RemoteListener } from './http/remote';
+import { createRemoteGate, isRemoteRequest, loadSecret, parseRemoteConfig, RemoteSessions, startRemoteListener, type RemoteConfig, type RemoteListener } from './http/remote';
+import { parsePasswordHash } from './remote/password';
 import { Hub } from './http/sse';
 import { createStaticHandler } from './http/static';
 import { TerminalStreams } from './http/terminal';
@@ -301,8 +302,31 @@ const ticker = setInterval(() => {
   }
 }, 250);
 
-const tunnel = new TunnelService();
+let remoteConfigRef: RemoteConfig | undefined;
+let remoteGateRef: ((req: http.IncomingMessage, res: http.ServerResponse, url: URL) => boolean) | undefined;
 let ensureRemoteListenerFn: (() => void) | undefined;
+
+function onCredentialsChanged(user: string, hash: string): void {
+  const parsedHash = parsePasswordHash(hash);
+  if (!parsedHash) return;
+  if (remoteConfigRef) {
+    remoteConfigRef.user = user;
+    remoteConfigRef.passwordHash = parsedHash;
+    remoteConfigRef.passwordHashText = hash;
+    const sessions = new RemoteSessions(loadSecret(join(config.dataDir, 'remote-secret')), remoteConfigRef, Date.now, join(config.dataDir, 'remote-revoked.json'));
+    remoteGateRef = createRemoteGate({
+      config: remoteConfigRef,
+      sessions,
+      secure: !!remoteConfigRef.tls,
+      caFile: remoteConfigRef.tls?.caFile,
+    });
+    log.info(tr('   Acesso remoto: credenciais atualizadas para o usuário "{0}".', [user]));
+  } else {
+    ensureRemoteListenerFn?.();
+  }
+}
+
+const tunnel = new TunnelService((user, hash) => onCredentialsChanged(user, hash));
 
 const api = createApiHandler({
   tunnel,
@@ -417,9 +441,11 @@ function ensureRemoteListener(): void {
     if (parsed.warning) log.warn(`   ${parsed.warning}.`);
     return;
   }
-  const gate = createRemoteGate({
+  remoteConfigRef = remote;
+  const sessions = new RemoteSessions(loadSecret(join(config.dataDir, 'remote-secret')), remote, Date.now, join(config.dataDir, 'remote-revoked.json'));
+  remoteGateRef = createRemoteGate({
     config: remote,
-    sessions: new RemoteSessions(loadSecret(join(config.dataDir, 'remote-secret')), remote, Date.now, join(config.dataDir, 'remote-revoked.json')),
+    sessions,
     secure: !!remote.tls,
     caFile: remote.tls?.caFile,
   });
@@ -429,7 +455,7 @@ function ensureRemoteListener(): void {
       const url = parseUrl(req);
       try {
         if (guard(req, res)) return;
-        if (gate(req, res, url)) return;
+        if (remoteGateRef?.(req, res, url)) return;
         if (!api(req, res, url)) fallback(req, res, url);
       } catch (err) {
         log.warn(tr('Erro ao responder (remoto) {0} {1}: {2}', [req.method, url.pathname, errMsg(err)]));

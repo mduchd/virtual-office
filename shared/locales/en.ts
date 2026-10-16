@@ -21,6 +21,14 @@ export const EN: Readonly<Record<string, string>> = {
   "Escaneie o QR Code com a câmera do celular:": "Scan QR code with phone camera to open:",
   "o túnel só pode ser controlado pelo próprio computador": "tunnel can only be controlled from the computer itself",
   "serviço de túnel indisponível": "tunnel service unavailable",
+  "Alterar": "Change",
+  "Alterar usuário e senha": "Change username and password",
+  "O nome de usuário não pode ficar vazio": "Username cannot be empty",
+  "A senha deve ter pelo menos 4 caracteres": "Password must be at least 4 characters",
+  "Salvando…": "Saving…",
+  "Erro ao atualizar": "Error updating",
+  "Credenciais atualizadas com sucesso!": "Credentials updated successfully!",
+  "Usuário e senha inválidos": "Invalid username or password",
 
   // client/src/main.ts
   "Escritório virtual em pixel art que mostra, em tempo real, o que seus agentes do Claude Code estão fazendo.": "Pixel-art virtual office that shows, in real time, what your Claude Code agents are doing.",

@@ -722,6 +722,18 @@ export function createApiHandler(deps: ApiDeps): (req: IncomingMessage, res: Ser
           (status) => sendJson(res, 200, status),
           (err) => sendJson(res, 500, { error: err.message || String(err) }),
         );
+      } else if (path === '/api/tunnel/credentials' && method === 'POST') {
+        readJson(req)
+          .then(async (body) => {
+            const b = body as { user?: unknown; pass?: unknown };
+            if (typeof b?.user !== 'string' || typeof b?.pass !== 'string') {
+              return sendJson(res, 400, { error: tr('Usuário e senha inválidos') });
+            }
+            const status = await tunnel.updateCredentials(b.user, b.pass);
+            deps.ensureRemoteListener?.();
+            sendJson(res, 200, status);
+          })
+          .catch((err) => sendJson(res, 400, { error: err.message || String(err) }));
       } else {
         methodNotAllowed(res, 'GET, POST');
       }

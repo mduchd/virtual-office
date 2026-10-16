@@ -21,6 +21,14 @@ export const VI: Readonly<Record<string, string>> = {
   "Escaneie o QR Code com a câmera do celular:": "Quét mã QR bằng camera điện thoại để mở:",
   "o túnel só pode ser controlado pelo próprio computador": "đường hầm chỉ có thể được điều khiển từ chính máy tính này",
   "serviço de túnel indisponível": "dịch vụ đường hầm hiện không khả dụng",
+  "Alterar": "Đổi",
+  "Alterar usuário e senha": "Đổi tài khoản và mật khẩu",
+  "O nome de usuário não pode ficar vazio": "Tên đăng nhập không được để trống",
+  "A senha deve ter pelo menos 4 caracteres": "Mật khẩu phải có ít nhất 4 ký tự",
+  "Salvando…": "Đang lưu…",
+  "Erro ao atualizar": "Lỗi cập nhật",
+  "Credenciais atualizadas com sucesso!": "Đã đổi thông tin đăng nhập thành công!",
+  "Usuário e senha inválidos": "Tên đăng nhập và mật khẩu không hợp lệ",
 
   // client/src/main.ts
   "Escritório virtual em pixel art que mostra, em tempo real, o que seus agentes do Claude Code estão fazendo.": "Văn phòng ảo phong cách pixel art hiển thị theo thời gian thực những gì các agent Claude Code của bạn đang làm.",

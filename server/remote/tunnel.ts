@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { addToList, readEnvValue, updateEnv } from './envfile';
 import { hashPassword } from './password';
+import { tr } from '../../shared/i18n';
 
 const ROOT = resolve(fileURLToPath(import.meta.url), '../../..');
 const ENV_FILE = join(ROOT, '.env');
@@ -32,8 +33,10 @@ export class TunnelService {
     pass: DEFAULT_PASSWORD,
     error: null,
   };
+  private onCredentialsChanged?: (user: string, hash: string) => void;
 
-  constructor() {
+  constructor(onCredentialsChanged?: (user: string, hash: string) => void) {
+    this.onCredentialsChanged = onCredentialsChanged;
     this.readCredentials();
   }
 
@@ -41,7 +44,9 @@ export class TunnelService {
     if (existsSync(ENV_FILE)) {
       const env = readFileSync(ENV_FILE, 'utf8');
       const u = readEnvValue(env, 'HABBLAUD_REMOTE_USER');
+      const p = readEnvValue(env, 'HABBLAUD_TUNNEL_PASSWORD');
       if (u) this.statusState.user = u;
+      if (p) this.statusState.pass = p;
     }
     return { user: this.statusState.user, pass: this.statusState.pass };
   }
@@ -53,14 +58,19 @@ export class TunnelService {
   async ensureEnv(): Promise<{ user: string; pass: string }> {
     let env = existsSync(ENV_FILE) ? readFileSync(ENV_FILE, 'utf8') : '';
     let user = readEnvValue(env, 'HABBLAUD_REMOTE_USER') || DEFAULT_USER;
+    let pass = readEnvValue(env, 'HABBLAUD_TUNNEL_PASSWORD') || DEFAULT_PASSWORD;
     const hasHash = !!readEnvValue(env, 'HABBLAUD_REMOTE_PASSWORD_HASH');
-    const pass = DEFAULT_PASSWORD;
 
     if (!hasHash) {
       const hash = await hashPassword(pass);
       env = updateEnv(env, {
         HABBLAUD_REMOTE_USER: user,
         HABBLAUD_REMOTE_PASSWORD_HASH: hash,
+        HABBLAUD_TUNNEL_PASSWORD: pass,
+      });
+    } else if (!readEnvValue(env, 'HABBLAUD_TUNNEL_PASSWORD')) {
+      env = updateEnv(env, {
+        HABBLAUD_TUNNEL_PASSWORD: pass,
       });
     }
 
@@ -76,6 +86,33 @@ export class TunnelService {
     this.statusState.user = user;
     this.statusState.pass = pass;
     return { user, pass };
+  }
+
+  async updateCredentials(user: string, pass: string): Promise<TunnelStatus> {
+    const trimmedUser = user.trim();
+    const trimmedPass = pass.trim();
+    if (!trimmedUser) throw new Error(tr('O nome de usuário não pode ficar vazio'));
+    if (!trimmedPass || trimmedPass.length < 4) throw new Error(tr('A senha deve ter pelo menos 4 caracteres'));
+
+    const hash = await hashPassword(trimmedPass);
+    let env = existsSync(ENV_FILE) ? readFileSync(ENV_FILE, 'utf8') : '';
+    env = updateEnv(env, {
+      HABBLAUD_REMOTE_USER: trimmedUser,
+      HABBLAUD_REMOTE_PASSWORD_HASH: hash,
+      HABBLAUD_TUNNEL_PASSWORD: trimmedPass,
+    });
+    writeFileSync(ENV_FILE, env, 'utf8');
+
+    process.env.HABBLAUD_REMOTE_USER = trimmedUser;
+    process.env.HABBLAUD_REMOTE_PASSWORD_HASH = hash;
+    process.env.HABBLAUD_TUNNEL_PASSWORD = trimmedPass;
+
+    this.statusState.user = trimmedUser;
+    this.statusState.pass = trimmedPass;
+
+    this.onCredentialsChanged?.(trimmedUser, hash);
+
+    return this.status();
   }
 
   async ensureBinary(): Promise<string> {
