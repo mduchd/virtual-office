@@ -98,7 +98,7 @@ export type ClaudeRunner = (args: string[], env: NodeJS.ProcessEnv) => ClaudeRes
 /** O runner de verdade. stdin fechado: nada fica esperando uma resposta no terminal. */
 export function makeClaudeRunner(cmd = 'claude'): ClaudeRunner {
   return (args, env) => {
-    const r = spawnSync(cmd, args, { env, encoding: 'utf8', timeout: CLI_TIMEOUT_MS, stdio: ['ignore', 'pipe', 'pipe'] });
+    const r = spawnSync(cmd, args, { env, encoding: 'utf8', timeout: CLI_TIMEOUT_MS, stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' });
     if (r.error) {
       const code = (r.error as NodeJS.ErrnoException).code;
       const error = code === 'ENOENT' ? tr('o comando "{0}" não foi encontrado no PATH', [cmd]) : code === 'ETIMEDOUT' ? tr('"{0} {1}" não terminou em {2} s', [cmd, args.join(' '), CLI_TIMEOUT_MS / 1000]) : r.error.message;
