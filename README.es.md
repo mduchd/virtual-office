@@ -9,7 +9,7 @@
   Cada proyecto se convierte en una sala, y cada agente, en un personaje en pixel art que muestra en tiempo real lo que está haciendo.
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.pt-BR.md">Português</a> · <b>Español</b> · <a href="README.fr.md">Français</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.pt-BR.md">Português</a> · <b>Español</b> · <a href="README.fr.md">Français</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 <p align="center">
   <img alt="Node.js 22.12+" src="https://img.shields.io/badge/node-%E2%89%A522.12-5fa04e?logo=node.js&logoColor=white" />

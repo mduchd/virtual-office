@@ -5,11 +5,11 @@
 <h1 align="center">Habblaud</h1>
 
 <p align="center">
-  <b>The virtual office for your Claude Code (and Codex) agents.</b><br />
+  <b>The virtual office for your Claude Code, Codex, and Google Antigravity agents.</b><br />
   Each project becomes a room, and each agent becomes a pixel-art character that shows, in real time, what it's doing.
 </p>
 
-<p align="center"><b>English</b> · <a href="README.pt-BR.md">Português</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a></p>
+<p align="center"><b>English</b> · <a href="README.pt-BR.md">Português</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 <p align="center">
   <img alt="Node.js 22.12+" src="https://img.shields.io/badge/node-%E2%89%A522.12-5fa04e?logo=node.js&logoColor=white" />
@@ -23,9 +23,15 @@
   <img src="docs/screenshots/office.gif" width="820" alt="Animation of a Habblaud room: characters typing at their desks, subagents with badges and activity bubbles" />
 </p>
 
+> [!NOTE]
+> **Credits & Upstream Repository:**
+> This project is a customized fork/derivative of the original **Habblaud** virtual office created by **[Márcio Junior (@marmottajr)](https://github.com/marmottajr)**.
+> Upstream repository: [https://github.com/marmottajr/habblaud](https://github.com/marmottajr/habblaud).
+> Licensed under the [MIT License](LICENSE). All credit for the brilliant virtual office concept, procedural pixel art engine, and core architecture belongs to the original author.
+
 ---
 
-You open Claude Code in several projects, launch subagents, leave tasks running… and lose track of who's doing
+You open Claude Code, OpenAI Codex, or Google Antigravity across several projects, launch subagents, leave tasks running… and lose track of who's doing
 what. **Habblaud** turns all of that into an office you can take in at a glance: who's typing, who raised a hand
 because they **need you**, who delivered their work and left, who went for a coffee while waiting for the next
 instruction — and how much of each account you've already used in the 5-hour session and in the week.
@@ -34,7 +40,7 @@ And when two or more agents have nothing to do, the office gets a **social life*
 and they watch soccer together in the lounge, play video games and ping-pong, gossip in the kitchen, freshen up at the
 mirror and bet coins on rock-paper-scissors. See [Social life](#social-life).
 
-Everything runs on your machine, reading the files Claude Code itself already writes (plus only the `alias` lines in
+Everything runs on your machine, reading the files your AI coding agents already write (plus only the `alias` lines in
 your shell, to give each account its letter). Nothing leaves the computer: Habblaud doesn't read credentials or make
 external calls.
 
@@ -42,7 +48,32 @@ external calls.
 
 - [What it looks like](#what-it-looks-like)
 - [Installation](#installation)
+  - [Requirements](#requirements)
+  - [1. Get the project](#1-get-the-project)
+  - [2. Start Habblaud](#2-start-habblaud)
+  - [3. Install the Habblaud mod in Claude Code (recommended)](#3-install-the-habblaud-mod-in-claude-code-recommended)
+  - [4. Codex in the office (optional)](#4-codex-in-the-office-optional)
+  - [5. Google Antigravity in the office (optional)](#5-google-antigravity-in-the-office-optional)
+  - [Remote access and phone control](#remote-access-and-phone-control)
+  - [Updating](#updating)
+  - [Uninstalling](#uninstalling)
 - [How to use](#how-to-use)
+  - [What each character is doing](#what-each-character-is-doing)
+  - [Interface](#interface)
+  - [Office themes](#office-themes)
+  - [Languages](#languages)
+  - [Day, night and procedural audio](#day-night-and-procedural-audio)
+  - [Terminal](#terminal)
+  - [Interactive terminal (take over, new session and end)](#interactive-terminal-take-over-new-session-and-end)
+  - [Day timelapse](#day-timelapse)
+  - [Answering from the office](#answering-from-the-office)
+  - [Sending messages](#sending-messages)
+  - [Editing the character](#editing-the-character)
+  - [Codex](#codex)
+  - [Google Antigravity](#google-antigravity)
+  - [GitHub in the office](#github-in-the-office)
+  - [My day](#my-day)
+  - [Demo mode](#demo-mode)
 - [Accounts and usage (5-hour and weekly)](#accounts-and-usage-5-hour-and-weekly)
 - [Configuration](#configuration)
 - [How it works](#how-it-works)
@@ -126,8 +157,8 @@ shrinks on its own.
 
 ### Requirements
 
-- **macOS** (tested) or Linux.
-- **[Claude Code](https://code.claude.com)** installed, with one or more accounts (2.1.287 or newer for the mod).
+- **Windows** (tested with `start.bat` / PowerShell), **macOS**, or **Linux**.
+- **[Claude Code](https://code.claude.com)** (2.1.287 or newer for the mod), OpenAI **Codex**, or **[Google Antigravity](https://github.com/google-deepmind/antigravity)** installed.
 - **Node.js 22.12+** and **npm** (developed with Node 24; Docker already uses Node 24).
 - **Docker Desktop** (or Docker Engine with Compose v2), if you're going to run it in a container.
 
@@ -150,7 +181,7 @@ npm install
 npm run docker:up
 ```
 
-The script detects your Claude Code accounts, mounts only the folders it needs (read-only), builds
+The script detects your accounts, mounts only the folders it needs (read-only), builds
 the image and starts the container — which restarts on its own along with Docker. Open **http://localhost:4747**.
 
 **Option B — Node, without Docker**
@@ -162,14 +193,19 @@ npm start
 
 Open **http://localhost:4747**. For development, use `npm run dev` (server + Vite with hot reload).
 
-Now open Claude Code in any project and watch your agent arrive by elevator. 🎉
+**Option C — Windows Quick Start (one-click)**
+
+- Double-click **`start.bat`**: Launches Habblaud, automatically configures the environment, opens your default browser at **http://localhost:4747**, and runs the server.
+- Double-click **`run-silent.vbs`**: Runs Habblaud silently in the background without keeping a command prompt window open.
+
+Now open Claude Code, Codex, or Google Antigravity in any project and watch your agents arrive by elevator. 🎉
 
 ### 3. Install the Habblaud mod in Claude Code (recommended)
 
 ```bash
-npm run mod:install                        # o mod e os plugins de permissões e de mensagens, em cada conta
-npm run mod:install -- --sem-permissoes    # sem responder permissões e perguntas pelo escritório
-npm run mod:install -- --sem-mensagens     # sem mandar mensagens aos agentes pelo escritório
+npm run mod:install                        # the mod and permission/message plugins in each account
+npm run mod:install -- --sem-permissoes    # without answering permissions/questions from the office
+npm run mod:install -- --sem-mensagens     # without sending messages to agents from the office
 ```
 
 Habblaud ships a [mod](https://code.claude.com/docs/en/plugins/mods/overview) (a plugin that runs inside
@@ -199,8 +235,8 @@ Without mods, live usage and answering from the office come from two installers 
 `settings.json` (with a backup first):
 
 ```bash
-npm run usage:install    # põe um "tap" na frente do statusline de cada conta, que captura o uso de 5h/semanal
-npm run hooks:install    # acrescenta o hook PermissionRequest, para responder permissões pelo escritório
+npm run usage:install    # puts a "tap" in front of each account's statusline to capture 5h/weekly usage
+npm run hooks:install    # adds the PermissionRequest hook to answer permissions from the office
 ```
 
 Your statusline keeps looking the same. To undo: `npm run usage:uninstall` and `npm run hooks:uninstall`.
@@ -219,83 +255,70 @@ reads the conversations, without installing anything. To see Codex **live** (wha
 approve commands from the office, install the hooks:
 
 ```bash
-npm run codex:install      # acrescenta os hooks do Habblaud em ~/.codex/hooks.json (backup antes; os outros ficam)
-npm run codex:status       # confere
+npm run codex:install      # adds Habblaud hooks to ~/.codex/hooks.json (with backup; other hooks stay)
+npm run codex:status       # check status
 ```
 
 Then **open Codex and approve the Habblaud hooks in `/hooks`**: Codex only runs a new hook after you
 approve it (Habblaud never writes that approval). With Habblaud in Docker, to send messages to Codex sessions,
-also keep `npm run codex:bridge` running on the Mac (see [Codex](#codex)).
+also keep `npm run codex:bridge` running on your host machine (see [Codex](#codex)).
 
-### Open on your phone (optional)
+### 5. Google Antigravity in the office (optional)
 
-By default Habblaud only accepts connections from the computer it runs on. To open it on your phone (on the same Wi-Fi), with Docker:
+Habblaud comes with native, built-in support for **[Google Antigravity](https://github.com/google-deepmind/antigravity)** agents:
+
+- **Zero configuration:** Habblaud automatically discovers active Antigravity sessions in `~/.gemini/antigravity` (or `%USERPROFILE%\.gemini\antigravity` on Windows, or custom folders via `HABBLAUD_ANTIGRAVITY_DIRS` / `ANTIGRAVITY_HOME`).
+- **Live session monitoring:** Real-time character animations, desk presence, task progress, tool calls, and subagent hierarchy streamed directly from transcript logs.
+- **Token and usage tracking:** Monitors conversation turns, active working time, and token metrics.
+- **Interactive Remote Prompts:** Send messages and instructions directly to active Antigravity conversations from the web UI via `agentapi send-message`.
+- Antigravity characters appear with their distinct **AGY** account chip.
+
+### Remote access and phone control
+
+Control and monitor your office conveniently from your smartphone. Habblaud provides several options depending on your setup:
+
+#### Method 1: Cloudflare Tunnel & QR Code (Recommended — Zero Config, Access from Anywhere)
+
+The quickest and most secure way to access Habblaud from your phone, whether you are on the same Wi-Fi or away from home:
+
+```bash
+npm run remote:tunnel
+```
+
+- **Instant setup:** Automatically downloads `cloudflared` (cross-platform) into `./bin/`, creates a secure encrypted tunnel, and displays a public `https://*.trycloudflare.com` URL alongside a **terminal QR code**.
+- **Web UI Remote Panel & QR:** Click the **Phone / Remote** icon in the top bar or open **Settings** to see the live tunnel status, copy the remote link, and view an interactive SVG QR code.
+- **Manage credentials from UI:** Directly change the remote username and password from the Remote Panel without editing `.env` manually.
+- **Full control on mobile:** Review notifications, approve/deny permission requests, send messages to agents, and check account usage from your phone.
+
+#### Method 2: Phone with login and HTTPS on Local Network
+
+Open a **second port with a username, password, and HTTPS** for your local Wi-Fi:
+
+```bash
+npm run remote:setup   # configure user, password, local address name
+npm run docker:up      # or: npm start
+```
+
+`remote:setup` writes the password **hash** (scrypt) to `.env`, creates a local CA and server certificate in
+`~/.habblaud/remote-tls`, and announces `<name>.local` via mDNS. Open `https://<name>.local:4748` on your phone.
+On first access, install and trust the generated Habblaud CA certificate.
+
+- **What the phone can do:** `HABBLAUD_REMOTE_ALLOW` in `.env` accepts `permissions`, `messages`, `terminal`, and `spawn` (comma-separated), or `none` (view-only).
+- **Deliveries:** With `terminal` permission allowed, tap the delivery box in the top bar to review deliverables and attachments (images, PDFs, files).
+- **New agent (+):** Spawn background Claude Code sessions (`claude --bg`) in chosen folders directly from your phone (requires `HABBLAUD_PTY=1` and `spawn` permission).
+
+#### Method 3: Direct local network access (view only)
+
+To open Habblaud over local Wi-Fi without login (Docker):
 
 ```bash
 printf 'HABBLAUD_BIND=0.0.0.0\n' > .env
 npm run docker:up -- --no-build
 ```
 
-Then open `http://<ip-do-computador>:4747` on your phone (on macOS: `ipconfig getifaddr en0`; if it comes back empty,
-`ipconfig getifaddr en1`). In Node mode, use `HABBLAUD_HOST=0.0.0.0 npm start`.
+Open `http://<computer-ip>:4747` on your phone.
 
-> ⚠️ With this, any device on the network can see the agents' activity (commands, files, session titles). Use it
-> only on trusted networks. The [terminal](#terminal) (and with it, answering and sending messages from the office) stays
-> off while the port is exposed. To go back: delete `.env` and run `npm run docker:up -- --no-build`.
-
-#### Phone with login and HTTPS (approving requests)
-
-Instead of exposing the main port, open a **second port with a username, a password and HTTPS**. Port 4747 stays on the
-computer only (hooks, plugins and your browser keep working without a login); the remote port goes to the network and
-every request on it requires a login. What separates the two is the port the connection arrived on, never the Host
-header. Nothing of this exists until you run the setup: without it, no extra port is published.
-
-```bash
-npm run remote:setup   # usuário, senha, nome do endereço e (opcional) um endereço próprio
-npm run docker:up
-```
-
-`remote:setup` writes only the password **hash** (scrypt) to `.env`, creates a local CA and the server certificate in
-`~/.habblaud/remote-tls`, and leaves a service announcing `<nome>.local` on the network (mDNS; LaunchAgent on macOS,
-systemd on Linux). Open `https://<nome>.local` on your phone (with `:4748` if port 443 was taken). The first time,
-accept the warning, tap **Install the Habblaud certificate** and trust it (iPhone: Settings › Profile Downloaded ›
-Install, then Settings › General › About › Certificate Trust Settings; Android: Security › Encryption & credentials ›
-Install a certificate › CA certificate), checking the fingerprint the setup showed.
-
-- **Restricted CA:** it only signs `localhost`, `.local` names, your own address and private-network IPs. Even if its
-  key leaked, a certificate for any other site would be rejected by the phone that trusts it. Changing your own
-  address creates a new CA (install the certificate on the phone again). The CA key never goes into the container.
-- **Own address** (e.g. `meuclaude.home`): goes into the certificate, but the phone only finds it with an entry in the
-  router's DNS pointing to the computer's IP. `<nome>.local` works without configuring anything.
-- **What the phone can do:** by default, approve and deny permission requests. `HABBLAUD_REMOTE_ALLOW` in `.env`
-  accepts `permissions`, `messages`, `terminal` and `spawn`, separated by commas, or `none` (view only). The
-  interactive terminal never works from the phone.
-- **Deliveries** (phone, with `terminal` allowed): the box button in the top bar lists what each agent finished, with
-  a summary and attachments (screenshots, PDFs, files it sent) that open with a tap.
-- **New agent** (the **+** button): starts a Claude Code session in the background on the computer (`claude --bg`, in
-  the chosen folder), which shows up in the office and receives messages and permission requests through Habblaud. In
-  a folder Claude Code doesn't trust yet, it opens the Claude app's new-session screen filled in, and you press Enter
-  there. **It comes turned off:** it needs `HABBLAUD_PTY=1` (the same opt-in as the
-  [interactive terminal](#interactive-terminal-take-over-new-session-and-end); in Docker, put it in `.env` and keep
-  `npm run codex:bridge` running on the computer) and, from the phone, `spawn` in `HABBLAUD_REMOTE_ALLOW` too.
-- **Dictation** (in New agent and in the message box): needs `whisper-cli` and `ffmpeg` (`brew install whisper-cpp
-  ffmpeg`) and a multilingual model in `~/.local/share/whisper/` (`ggml-small.bin` gets more right than
-  `ggml-base.bin`; the `.en` ones only understand English). Without them, the Dictate button doesn't show up. The
-  voice never leaves the computer. `HABBLAUD_WHISPER_BIN`, `HABBLAUD_FFMPEG_BIN`, `HABBLAUD_WHISPER_MODEL` and
-  `HABBLAUD_DICTATION_LANGS` (default `pt,en`) adjust it.
-- **Away from home (Tailscale):** with Tailscale on the computer and on the phone, `tailscale serve --bg --https=443
-  https+insecure://127.0.0.1:443` publishes the remote port (with login) only to your devices, with a valid
-  certificate at `https://<computador>.<tailnet>.ts.net`; add that name to `HABBLAUD_ALLOWED_HOSTS`. Always point it at
-  the remote port, never at 4747 (which has no login).
-- **Session:** 30 days; changing the password (running the setup again) ends all of them, and **Settings › Phone
-  access › Sign out** ends the one on that device. After 5 wrong passwords in a row, each new attempt waits from 1 s up to 5 min.
-- **IP changed?** `docker:up` re-issues the server certificate when the new IP is missing or when it's 30 days from
-  expiring, with the same CA (the phone keeps trusting it); the server swaps the certificate without restarting.
-- **Turn off:** `npm run remote:setup -- --off` and `npm run docker:up`.
-
-Without HTTPS the remote port doesn't start; `HABBLAUD_REMOTE_INSECURE_HTTP=1` forces plain HTTP (password and cookie
-in the clear on the network). In Node mode: `HABBLAUD_REMOTE_PORT` and `HABBLAUD_REMOTE_HOST` (default
-`0.0.0.0:4748`) and `HABBLAUD_REMOTE_TLS_DIR` (default `~/.habblaud/remote-tls/server`).
+> ⚠️ When exposed without authentication, the interactive terminal and message features are automatically disabled for security.
 
 ### Updating
 
@@ -383,11 +406,13 @@ a **colored chip with the account letter** (C, D…).
   Below the logo are the connection and the version in use, which turns into the **New version** badge when a new version comes out (see
   [Updating](#updating)).
 - **Side panel:** search, account filter and the list of rooms with their agents and subagents.
+  - **Smart Agent Prioritization:** Agents that **need you** (tier 0: waiting for permission or question answers) and agents actively **working or running shell commands** (tier 1) are automatically pinned to the top of the list.
+  - **Custom ordering:** Drag and drop agents to customize order, automatically remembered per room in local storage. Inactive agents are ordered by their most recent activity time.
 - **Details drawer:** click a character (in the building or in the list) to see activity, tasks, subagents,
   timeline and stats (tools, tokens, cost, lines changed, model, branch).
 - **Feed:** the latest activity across the whole office.
-- **Settings (⚙):** names, bubbles, how much idle agents wander around, day/night cycle, sounds, browser notifications,
-  demo mode and **About** (version in use and new version). **Help (?):** full legend and shortcuts.
+- **Settings (⚙):** names, bubbles, how much idle agents wander around, day/night cycle, sound volume and BGM, browser notifications,
+  remote access and credentials, demo mode and **About** (version in use and new version). **Help (?):** full legend and shortcuts.
 - **My day (📊):** where the day's time went (see [My day](#my-day)). **Timelapse** and **Session history** (the clocks
   in the top bar): see [Day timelapse](#day-timelapse) and [Terminal](#terminal).
 
@@ -419,14 +444,14 @@ activities and animations. The day/night cycle is still a separate option.
 
 ### Languages
 
-The interface is in **Portuguese, English, Spanish and French**. It follows the browser's language; in
+The interface is fully translated into **Portuguese, English, Spanish, French, and Vietnamese**. It follows the browser's language; in
 **Settings › Language** you can pin one (the choice is saved in this browser). The texts the server builds
-(activities, notices, terminal, logs and the install scripts) follow `HABBLAUD_LANG` and, without it, the
+(activities, notices, terminal, logs and the install scripts) follow `HABBLAUD_LANG` (e.g. `HABBLAUD_LANG=vi` or `HABBLAUD_LANG=en`) and, without it, the
 system language, except English: many machines and every container come in English by default, even for people who use another language.
 For the server in English, set `HABBLAUD_LANG=en` (in Docker, in `.env`). Any text without a translation shows up in
 Portuguese.
 
-### Day, night and sounds
+### Day, night and procedural audio
 
 The office follows **local time**: late at night and in the evening the lawn and the street turn bluish and dark, the streetlights,
 the lamps, the machines and the monitors that are on cast halos of light, the rooms with people in them are lit (the lights that
@@ -435,10 +460,12 @@ dawn (~5–7 a.m.) and at dusk (~5–7 p.m.) everything takes on a warm tone, an
 draws strips of light on the floor — short at noon, long and orange in the late afternoon. In **Settings › Day/night
 cycle** you can choose automatic, always day or always night; to test a time, use `?hora=21:30` in the URL.
 
-**Sounds** come turned off. Turned on in **Settings › Sounds**, they're synthesized in the browser itself (no audio
-files) and quiet: the typing of whoever is working in the rooms in view, the elevator "ding" when someone arrives or
-leaves, the bell when someone needs you, the click of a finished task and the ping-pong and arcade sounds of the hangouts.
-There's a master volume and each category can be turned on and off separately. With the tab hidden, only the bell rings.
+**Procedural audio system:** All audio in Habblaud is 100% synthesized in real time via the Web Audio API — zero heavy audio asset downloads:
+- **Procedural BGM:** Enjoy a calming, retro-style chiptune / lofi background music soundtrack created with procedural FM synthesis.
+- **Interactive object sounds:** Click on office furniture and equipment to interact with them — brewing fresh coffee at the coffee machine, bouncing ping-pong balls on the table, arcade bleeps and bloops, opening windows, and rustling potted plants.
+- **Dynamic zoom acoustic model:** When you zoom out the camera, audio undergoes spatial low-pass filtering and subtle reverberation to simulate distance; zooming in reveals crisp, intimate sound details.
+- **UI clicks & notifications:** Satisfying tactile audio feedback for button clicks, popovers, and urgent permission alert chimes.
+- Settings include a master volume slider, separate toggle switches for each audio category, and smart tab-hidden muting (only urgent alerts ring when the browser tab is in the background).
 
 ### Terminal
 
@@ -552,11 +579,13 @@ and waits for the next request, give a new instruction or correct its course, wi
 - The box shows the status: **queued** (the session fetches messages every 2 seconds), **delivered** or **not
   delivered**, with the reason. With the agent busy, the message waits and goes in when it finishes its turn, like a
   prompt typed while the agent is working.
-- The plugin runs inside each session and only talks to Habblaud at `127.0.0.1`. Without it (or in a session opened before
-  the install: use `/reload-plugins`), an install hint shows up in place of the box. Subagents don't receive
+- **Cross-provider support:**
+  - **Claude Code:** messages are picked up by the `habblaud-mensagens` plugin.
+  - **OpenAI Codex:** delivered into the session queue via `codex queue` (supports `codex.exe` and `codex.cmd` batch scripts on Windows).
+  - **Google Antigravity:** sent live to active conversation threads via `agentapi send-message`.
+- The plugin runs inside each session and only talks to Habblaud at `127.0.0.1`. Subagents don't receive
   messages.
 - It works under the same safeguard as the terminal (local access only) and can be turned off with `HABBLAUD_MENSAGENS=0`.
-  Read the warning in [Privacy and security](#privacy-and-security).
   From the [phone with login](#phone-with-login-and-https-approving-requests), only with `messages` in `HABBLAUD_REMOTE_ALLOW`.
 - In demo mode, the made-up agents also receive messages (pretend ones).
 
@@ -596,8 +625,7 @@ Codex account chip is hollow and carries the **CODEX** tag.
   Habblaud…". There's no "always allow" or "interrupt", and Codex doesn't let you answer its questions from outside.
 - **Sending messages:** the **Send message** box works for Codex too, through `codex queue`: the message joins
   the session's queue and Codex picks it up when it finishes what it's doing (up to about 10 seconds later). In Node mode
-  Habblaud runs the command itself; **in Docker**, keep `npm run codex:bridge` running on the Mac (the container can't
-  see your Codex).
+  Habblaud runs the command itself (supporting `codex.exe` and `codex.cmd` on Windows); **in Docker**, keep `npm run codex:bridge` running on your host machine.
 - **5-hour and weekly usage:** comes from Codex's own files and only refreshes while some session is running; the card
   shows how old the numbers are and "no quota" when the workspace has run out of credits.
 - **When the session comes in:** with the first message (that's when Codex records the project folder); a CLI that's open
@@ -606,6 +634,17 @@ Codex account chip is hollow and carries the **CODEX** tag.
   loaded for up to a minute after they go idle with no one watching; that's why the character may take a
   little while to leave after you close the terminal.
 - ChatGPT cloud conversations (with no file on the computer) don't show up. `HABBLAUD_CODEX=0` turns Codex off.
+
+### Google Antigravity
+
+[Google Antigravity](https://github.com/google-deepmind/antigravity) agents (from Google DeepMind) integrate seamlessly into the virtual office alongside Claude Code and Codex:
+
+- **Automatic discovery:** Habblaud detects active Antigravity environments in `~/.gemini/antigravity` (or `%USERPROFILE%\.gemini\antigravity` on Windows, or custom locations via `HABBLAUD_ANTIGRAVITY_DIRS` / `ANTIGRAVITY_HOME`).
+- **Real-time conversation transcripts:** Habblaud parses the session logs (`brain/<conversation-id>/.system_generated/logs/transcript.jsonl`) live to extract tool calls, subagent spawns, and code edits.
+- **Identity & Chip:** Antigravity agents are distinguished by their **AGY** chip and email detected from Electron storage.
+- **Direct message dispatch:** Send prompts and follow-up guidance straight from the web UI via `agentapi send-message <conversationId> <text>`.
+- **Usage calculation:** Measures working time, turn history, and token stats.
+- `HABBLAUD_ANTIGRAVITY=0` turns off Antigravity tracking if needed.
 
 ### GitHub in the office
 
@@ -657,8 +696,8 @@ Want to see the office full without having any sessions open?
 ## Accounts and usage (5-hour and weekly)
 
 > **Codex** accounts come in on their own (each `~/.codex*` folder or `CODEX_HOME` is an account; the letter comes from an
-> `alias x='CODEX_HOME=… codex'`, if there is one) and their usage comes from Codex's files; see [Codex](#codex). The rest
-> of this section is about Claude Code.
+> `alias x='CODEX_HOME=… codex'`, if there is one) and their usage comes from Codex's files; see [Codex](#codex).
+> **Google Antigravity** accounts are detected automatically from `~/.gemini/antigravity` (or `%USERPROFILE%\.gemini\antigravity`, or `HABBLAUD_ANTIGRAVITY_DIRS`), and their usage metrics (turns, active time, token counts) are parsed from the session transcripts. The rest of this section is about Claude Code.
 
 If you use more than one Claude Code account (for example, a `c` shortcut with `~/.claude` and a `d` with
 `CLAUDE_CONFIG_DIR=~/.claude-conta2`), Habblaud shows them all together: each agent carries its account's chip and the top bar
@@ -714,41 +753,42 @@ Everything works without configuring anything. If you need to adjust something, 
 | `HABBLAUD_PORT` | `4747` | HTTP port (in Docker, the port published on the host). |
 | `HABBLAUD_HOST` | `127.0.0.1` | Server interface in Node mode. Anything other than `127.0.0.1`/`localhost` turns off the terminal (and answering and sending messages from the office). |
 | `HABBLAUD_BIND` | `127.0.0.1` | Docker only (in `.env`): where the port is published. `0.0.0.0` opens it to the local network (and turns off the terminal and anything that acts on the sessions). |
-| `HABBLAUD_CLAUDE_DIRS` | automatic detection | Account folders, comma-separated (e.g. `/caminho/conta1,/caminho/conta2`). |
+| `HABBLAUD_CLAUDE_DIRS` | automatic detection | Claude Code account folders, comma-separated (e.g. `/caminho/conta1,/caminho/conta2`). |
 | `HABBLAUD_DATA_DIR` | `~/.habblaud` | Where Habblaud keeps its own data (character and room names, the timelapse timeline and the My day stats). |
 | `HABBLAUD_TIMELINE` | on | `0` turns off timeline recording (the days already recorded stay in the timelapse). In Docker it's always on. |
 | `HABBLAUD_USAGE_DIR` | `~/.habblaud/usage` | Where the mod (or the statusline tap) writes usage. |
 | `HABBLAUD_DEMO` | off | `1` turns on demo mode at startup. |
-| `HABBLAUD_ALLOWED_HOSTS` | — | Extra names accepted in the address (e.g. `meu-mac.local`), besides `localhost` and IPs. |
+| `HABBLAUD_ALLOWED_HOSTS` | — | Extra names accepted in the address (e.g. `meu-mac.local`, `*.trycloudflare.com`), besides `localhost` and IPs. |
 | `HABBLAUD_TERMINAL` | on (local access only) | `0` turns off the terminal, answering and sending messages from the office, and the character editor. With the port exposed they're already off, with no way to turn them on. |
 | `HABBLAUD_PTY` | off | `1` turns on the interactive terminal (open, take over and end Claude Code sessions from the office; local access only and outside Docker) and **New agent** (also in Docker, through `npm run codex:bridge`). Read the warning in [Privacy and security](#privacy-and-security). |
 | `HABBLAUD_CLAUDE_BIN` | `claude` from PATH | The Claude Code executable that the interactive terminal and New agent run. |
-| `HABBLAUD_REMOTE_ALLOW` | `permissions` | What the [phone with login](#phone-with-login-and-https-approving-requests) can do: `permissions`, `messages`, `terminal`, `spawn` (comma-separated) or `none`. The other `HABBLAUD_REMOTE_*` are written by `npm run remote:setup`. |
+| `HABBLAUD_REMOTE_ALLOW` | `permissions` | What the [phone with login](#remote-access-and-phone-control) can do: `permissions`, `messages`, `terminal`, `spawn` (comma-separated) or `none`. |
 | `HABBLAUD_MENSAGENS` | on (with the terminal) | `0` turns off only messages from the office (the box in the terminal and in the agent's details). |
 | `HABBLAUD_CODEX` | on | `0` turns off Codex in the office. |
 | `HABBLAUD_CODEX_DIRS` | automatic detection | Codex folders, comma-separated (instead of `~/.codex*` and `CODEX_HOME`). |
-| `HABBLAUD_CODEX_BIN` | `codex` from PATH (on Windows, `codex.exe`) | The Codex binary that delivers the messages (`codex queue`), in Node mode or in `npm run codex:bridge`. |
+| `HABBLAUD_CODEX_BIN` | `codex` from PATH (on Windows, `codex.exe` or `codex.cmd`) | The Codex binary that delivers messages (`codex queue`). |
+| `HABBLAUD_ANTIGRAVITY` | on | `0` turns off Google Antigravity session tracking. |
+| `HABBLAUD_ANTIGRAVITY_DIRS` | automatic detection | Google Antigravity directories, comma-separated (defaults to `~/.gemini/antigravity` or `%USERPROFILE%\.gemini\antigravity`). |
+| `HABBLAUD_ANTIGRAVITY_BIN` | `agentapi` / `agentapi.bat` | Path to the Antigravity `agentapi` binary to send real-time prompts. |
 | `HABBLAUD_UPDATE_CHECK` | on | `0` turns off the new-version check (a request to the repository's releases on GitHub every 6 h). |
-| `HABBLAUD_LANG` | system language (except English), otherwise `pt-BR` | Language of the texts the server builds (activities, notices, logs): `pt-BR`, `en`, `es` or `fr`. The interface follows the browser or the choice in Settings › Language. See [Languages](#languages). |
+| `HABBLAUD_LANG` | system language (except English), otherwise `pt-BR` | Language of server texts (activities, notices, logs): `pt-BR`, `en`, `es`, `fr`, or `vi` (Vietnamese). |
 | `HABBLAUD_ACCOUNTS` | — | JSON to customize name, letter or color, matched by the account folder name. E.g. `[{"id":".claude-conta2","name":"Trabalho","short":"T","color":"#5cc97b"}]`. |
 
 **In Docker**, `HABBLAUD_PORT`, `HABBLAUD_BIND`, `HABBLAUD_ALLOWED_HOSTS`, `HABBLAUD_DEMO`, `HABBLAUD_TERMINAL`,
-`HABBLAUD_MENSAGENS`, `HABBLAUD_CODEX`, `HABBLAUD_UPDATE_CHECK`, `HABBLAUD_LANG`, `HABBLAUD_PTY` and the
-`HABBLAUD_REMOTE_*` apply (in `.env` or in the environment), as do `HABBLAUD_CLAUDE_DIRS`, `HABBLAUD_CODEX_DIRS`, `HABBLAUD_USAGE_DIR` and
+`HABBLAUD_MENSAGENS`, `HABBLAUD_CODEX`, `HABBLAUD_ANTIGRAVITY`, `HABBLAUD_UPDATE_CHECK`, `HABBLAUD_LANG`, `HABBLAUD_PTY` and the
+`HABBLAUD_REMOTE_*` apply (in `.env` or in the environment), as do `HABBLAUD_CLAUDE_DIRS`, `HABBLAUD_CODEX_DIRS`, `HABBLAUD_ANTIGRAVITY_DIRS`, `HABBLAUD_USAGE_DIR` and
 `HABBLAUD_ACCOUNTS` (read by `docker:up` on the host); the rest are fixed inside the container. Options: `npm run docker:up -- --no-build` (starts without rebuilding),
 `npm run docker:down` (stops) and `npm run docker:logs` (follows the logs).
 
 ## How it works
 
 ```
- ~/.claude*/sessions/<pid>.json ─────────────────┐
- ~/.claude*/projects/<projeto>/<sessão>.jsonl ───┼──▶ servidor Node ──▶ modelo do escritório ──▶ SSE ──▶ navegador
- .../<sessão>/subagents/**/agent-*.jsonl ────────┘    (polling de 1 s)                                 (canvas + interface)
+ ~/.claude*/projects/<project>/<session>.jsonl ─────────┐
+ ~/.codex/sessions/**.jsonl ────────────────────────────┼──▶ Node server ──▶ Office model ──▶ SSE ──▶ Browser
+ ~/.gemini/antigravity/brain/**/transcript.jsonl ───────┘     (1s polling)                                (Canvas + UI)
 ```
 
-- **Who's in the office:** while a session is open, Claude Code keeps `sessions/<pid>.json` with the
-  project and the status (busy, idle, waiting on you or waiting on a background shell). That's what decides
-  who shows up and what each one does.
+- **Who's in the office:** while a session is open, Claude Code, Codex, or Google Antigravity keeps active session records and transcripts that indicate the project, status, and activities. That's what decides who shows up and what each one does.
 - **Running shells:** in the transcripts, each background `Bash` (or long foreground command) becomes a
   "shell" with a label and a timer, until the notification arrives that it finished, failed or was interrupted.
 - **Social life:** the hangouts, the personalities and the coins are a simulation in the browser (`client/src/world/social/`),
@@ -757,7 +797,7 @@ Everything works without configuring anything. If you need to adjust something, 
 - **What each one is doing:** the server follows the end of the transcripts (`.jsonl`) of the open sessions and turns
   each tool call into an activity, with an icon, in the server's language (see [Languages](#languages)). Tasks, title, model and
   stats come from there too.
-- **Subagents:** the transcripts in `<sessão>/subagents/` (including those from workflows) become characters linked to the
+- **Subagents:** the transcripts in `<sessão>/subagents/` or Antigravity subagent trajectories become characters linked to the
   agent that called them.
 - **GitHub:** PRs, pushes, CI and releases come from the same transcript lines (the command and its output, or the
   `gitOperation` that Claude Code itself records); nothing is queried on GitHub.
@@ -768,11 +808,11 @@ Everything works without configuring anything. If you need to adjust something, 
 <summary><b>Code structure and API</b></summary>
 
 ```
-shared/   protocolo (types.ts), atividades em PT-BR, nomes, simulador de demonstração
-server/   servidor HTTP + SSE: contas e uso, leitura das sessões e transcripts, modelo do escritório
-client/   Vite: src/art (pixel art procedural), src/world (o escritório no canvas), src/ui (interface)
-scripts/  build do servidor, docker-up, instaladores (mod, tap de statusline e hook de permissão) e screenshots
-mod/      o mod do Habblaud e os plugins de permissões e de mensagens (plugins do Claude Code; marketplace em .claude-plugin/)
+shared/   protocol (types.ts), i18n locales (en, pt, es, fr, vi), names, procedural demo simulator
+server/   HTTP + SSE server: multi-account detection (Claude, Codex, Antigravity), transcripts & usage, office model
+client/   Vite frontend: src/art (procedural pixel art), src/audio (procedural synth), src/world (canvas), src/ui (UI & remote panel)
+scripts/  server build, docker-up, remote tunnel, installers (mod, statusline tap, hooks) and screenshots
+mod/      Habblaud mod and permissions/messages plugins for Claude Code
 ```
 
 | Route | Description |
@@ -797,6 +837,10 @@ mod/      o mod do Habblaud e os plugins de permissões e de mensagens (plugins 
 | `/api/messages…` and `/api/mod/inbox…` | Sending messages: the page puts the message in the queue and follows its delivery; the `habblaud-mensagens` plugin fetches it, delivers it to the session and confirms. Local access only. |
 | `POST /api/codex/events` | Events from the Codex hooks (session opened, tool, approval, end of turn). Local access only. |
 | `/api/codex/bridge/poll` and `/ack` | `npm run codex:bridge` fetches the messages for Codex and confirms delivery. Local access only. |
+| `GET /api/tunnel` | Cloudflare Tunnel status: returns whether the tunnel is active, the public URL, and current credentials. |
+| `POST /api/tunnel/start` | Starts the background Cloudflare Tunnel. |
+| `POST /api/tunnel/stop` | Stops the active Cloudflare Tunnel. |
+| `POST /api/tunnel/credentials` | Updates the remote access username and password directly from the Web UI. |
 
 More server details in [`server/README.md`](server/README.md).
 
@@ -833,12 +877,12 @@ metadata (letter, email, organization) is read on the host by `docker:up` and pa
   `127.0.0.1`. It doesn't read the conversation, doesn't call the model and doesn't send anything off the computer. It's loaded from this
   folder: whatever is in it (including after a `git pull`) is what runs. The messages plugin
   (`habblaud-mensagens`) is separate precisely because it acts: it types into the session what you sent from the office.
-- **Local only, by default:** the server only accepts connections from the computer it runs on; opening it to the local network is optional.
+- **Local only, by default:** the server only accepts connections from the computer it runs on; opening it to the local network or via remote tunnel is optional.
   There's no telemetry. The only external call is the new-version check: every 6 hours, an anonymous request,
   with no token, to the public GitHub API (`api.github.com/repos/marmottajr/habblaud/releases/latest`). It doesn't send anything
   about your sessions; GitHub only sees your IP and the version in use, which goes in the `User-Agent`.
   `HABBLAUD_UPDATE_CHECK=0` turns off the request.
-  So is the [phone with login](#phone-with-login-and-https-approving-requests), which only exists after `npm run remote:setup`.
+- **Cloudflare Tunnel (`remote:tunnel`):** Encrypted HTTPS connection without needing port-forwarding or public IP exposure. Always protected by username and password authentication, and tunnel credentials can be reviewed and edited directly from the UI.
 - **No credentials:** Habblaud doesn't read passwords or access tokens. From each account's `.claude.json` it only uses the
   email, the organization and the `/usage` cache; live usage comes from the mod (or the statusline tap).
 - **Masked secrets:** tokens and passwords in known formats (`Bearer`, `-u usuário:senha`, `TOKEN=`, `sk-…`,
@@ -905,6 +949,7 @@ metadata (letter, email, organization) is read on the host by `docker:up` and pa
   other apps stay where they are) and writes `~/.habblaud/codex-hook.json`; approving the hooks is always up to you, in
   `/hooks`. The hooks only talk to `127.0.0.1`. Messages to Codex carry the same warning as those to Claude Code: any
   program on this machine that talks to Habblaud can leave a message in a session's queue.
+- **Google Antigravity:** Habblaud only reads conversation summaries and transcript logs (`brain/**/transcript.jsonl`) generated locally on your computer. It never transmits project files or auth keys outside. Prompt dispatching is handled locally via the `agentapi` binary.
 - **What shows up on screen:** activity summaries (tool, file, command or query), session titles,
   tasks and stats (and, in the terminal, the conversation). Don't expose the port on networks you don't
   trust.
@@ -919,6 +964,8 @@ metadata (letter, email, organization) is read on the host by `docker:up` and pa
 | `npm run build` / `npm start` | Builds and runs the production version. |
 | `npm test` | Tests (Vitest). |
 | `npm run typecheck` | Type checking for the client, the server and the scripts. |
+| `npm run remote:tunnel` | Starts a zero-configuration Cloudflare Tunnel for secure remote smartphone access. |
+| `start.bat` / `run-silent.vbs` | Quick startup scripts for Windows users. |
 | `claude plugin test mod/habblaud` | Mod tests (no session, account or network); same for `mod/habblaud-mensagens`. |
 | `claude plugin validate .` | Validates the marketplace (`.claude-plugin/marketplace.json`); with `mod/habblaud`, `mod/habblaud-permissoes` or `mod/habblaud-mensagens`, validates the plugin and lists the mod's events and calls. |
 | `claude --plugin-dir mod/habblaud` | Opens a session with the mod from this folder, without installing it (edit and run `/reload-plugins`). |
@@ -965,9 +1012,16 @@ working, note the changes under "Não lançado" (Unreleased). To release:
 <details>
 <summary><b>The office is empty</b></summary>
 
-Only **open** Claude Code sessions show up. Check whether there's one running and whether the account was detected at
+Only **open** Claude Code, Codex, or Google Antigravity sessions show up. Check whether there's one running and whether the accounts were detected at
 `http://localhost:4747/api/health`. If the account folders are somewhere else, use
-`HABBLAUD_CLAUDE_DIRS=/caminho/conta1,/caminho/conta2`.
+`HABBLAUD_CLAUDE_DIRS=/path/to/account1,/path/to/account2` or `HABBLAUD_ANTIGRAVITY_DIRS`.
+
+</details>
+
+<details>
+<summary><b>Google Antigravity sessions do not appear</b></summary>
+
+Check that `HABBLAUD_ANTIGRAVITY=0` is not set. By default, Habblaud automatically discovers Antigravity in `~/.gemini/antigravity` (or `%USERPROFILE%\.gemini\antigravity`). If your installation is in a custom path, specify `HABBLAUD_ANTIGRAVITY_DIRS=/path/to/antigravity`.
 
 </details>
 
@@ -1002,12 +1056,17 @@ Another Habblaud (Node or Docker) is already running. Stop it (`npm run docker:d
 </details>
 
 <details>
+<summary><b>Cloudflare Tunnel does not start</b></summary>
+
+Make sure the main Habblaud server is already running (`npm start` or `npm run docker:up`). If this is the first time running `npm run remote:tunnel`, an active internet connection is required to automatically download the official `cloudflared` binary into `./bin/`.
+
+</details>
+
+<details>
 <summary><b>It doesn't open on my phone</b></summary>
 
-Check that you created `.env` with `HABBLAUD_BIND=0.0.0.0` and recreated the container (`npm run docker:up -- --no-build`), that
-the phone is on the same Wi-Fi and that the computer's firewall allows connections on port 4747. By IP it works right away;
-to open it by a name (e.g. `meu-mac.local`), add `HABBLAUD_ALLOWED_HOSTS=meu-mac.local` (in Docker, in the same
-`.env`).
+If you are using Cloudflare Tunnel (`npm run remote:tunnel`), simply scan the QR code printed in the terminal or displayed in the Web UI Remote Panel.
+If using local network access, verify that `.env` has `HABBLAUD_BIND=0.0.0.0` (Docker) or `HABBLAUD_HOST=0.0.0.0` (Node), that the phone is on the same Wi-Fi, and that your computer's firewall allows incoming connections on port 4747 (or 4748).
 
 </details>
 
@@ -1044,14 +1103,14 @@ folder with `HABBLAUD_CODEX_DIRS` (and run `npm run docker:up` again: in Docker,
 run `npm run codex:install`, **approve the hooks in `/hooks` in Codex** and check with `npm run codex:status`. Codex runs
 the hooks through the login shell, which may have an old Node; `codex:install` picks a Node 22+ and tells you which one (or use
 `--node <caminho>`). A freshly opened CLI session only shows up with the **first message**: before that, Codex doesn't
-say which folder it's in (it only creates the session lock), and without the folder there's no room.
+say which folder it's in (it only creates the session lock), and without the folder there's no room. On Windows, Habblaud automatically supports `codex.cmd` batch scripts generated by npm.
 
 </details>
 
 <details>
 <summary><b>The message box doesn't show up (or stays queued)</b></summary>
 
-The box only shows up for main agents whose session has the `habblaud-mensagens` plugin connected: run
+The box only shows up for main agents whose session has the `habblaud-mensagens` plugin connected (or active Codex / Antigravity sessions): run
 `npm run mod:status` (it says, per account, whether the plugin is installed and whether Habblaud has messages turned on) and, in
 sessions opened before the install, `/reload-plugins`. Without the plugin, the agent's details show the install
 hint. Messages follow the terminal's safeguard and `HABBLAUD_MENSAGENS=0` turns them off; the startup log
@@ -1095,10 +1154,13 @@ To show the agents, Habblaud only reads local files that Claude Code itself writ
 (records of the open sessions, transcripts and account settings). This format isn't documented and may change between Claude Code versions:
 after an update, Habblaud may stop working, fully or partially, until it's adjusted.
 
-## License
+## License & Credits
 
-[MIT](LICENSE). The images in `client/public/assets` (logo, illustrations, pictures and posters) were generated with
-AI for this project and converted into pixel art by the scripts in `scripts/assets/`.
+- **Original Author & Creator:** [Márcio Junior (@marmottajr)](https://github.com/marmottajr)
+- **Original Upstream Repository:** [https://github.com/marmottajr/habblaud](https://github.com/marmottajr/habblaud)
+- **License:** [MIT](LICENSE) © 2026 Márcio Junior.
+- **Custom modifications in this fork:** Added Google Antigravity agent integration, Vietnamese localization, Cloudflare Tunnel remote QR access, enhanced procedural audio (BGM synthesizer, interactive object sounds, dynamic zoom acoustic model), and Windows startup scripts (`start.bat`, `run-silent.vbs`).
+- The images in `client/public/assets` (logo, illustrations, pictures and posters) were generated with AI for the original project and converted into pixel art by the scripts in `scripts/assets/`.
 
 ## Social life
 
