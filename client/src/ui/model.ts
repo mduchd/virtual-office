@@ -310,6 +310,40 @@ export interface AgentNode {
   subTotal: number;
 }
 
+/**
+ * Trạng thái ưu tiên hiển thị của agent:
+ * 0: waiting (cần bạn / chờ phản hồi hoặc cấp quyền - ưu tiên cao nhất)
+ * 1: working / shell (đang chạy / đang làm việc)
+ * 2: idle (nhàn rỗi)
+ * 3: done / offline
+ */
+export function agentRunningTier(a: Pick<AgentInfo, 'status' | 'shells'>): number {
+  if (a.status === 'waiting') return 0;
+  if (a.status === 'working' || a.status === 'shell' || (a.shells?.length ?? 0) > 0) return 1;
+  if (a.status === 'idle') return 2;
+  return 3;
+}
+
+/** Trạng thái ưu tiên của một AgentNode trên thanh sidebar (tính cả các subagent đang chạy). */
+export function nodeRunningTier(n: AgentNode): number {
+  let tier = agentRunningTier(n.agent);
+  for (const s of n.subs) {
+    const st = agentRunningTier(s);
+    if (st < tier) tier = st;
+  }
+  return tier;
+}
+
+/** Thời điểm hoạt động gần nhất của agent / subagent. */
+export function nodeActiveTime(n: AgentNode): number {
+  let t = n.agent.statusSince || n.agent.startedAt || 0;
+  for (const s of n.subs) {
+    const st = s.statusSince || s.startedAt || 0;
+    if (st > t) t = st;
+  }
+  return t;
+}
+
 export interface RoomGroup {
   room: RoomInfo;
   /** Contas presentes na sala (ids, na ordem de `accounts` do snapshot). */

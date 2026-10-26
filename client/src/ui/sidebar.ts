@@ -7,7 +7,7 @@ import { moveRoom, orderRooms } from './roomorder';
 import { h, iconButton, KeyedList, setAttr, setHidden, setStyleVar, setText, setTitle } from './dom';
 import { plural, shortPath } from './format';
 import { ICONS } from './icons';
-import { groupRooms, type AgentNode, type RoomGroup } from './model';
+import { groupRooms, nodeActiveTime, nodeRunningTier, type AgentNode, type RoomGroup } from './model';
 import { officeIsEmpty } from './overlays';
 import { createAgentRow, updateAgentRow } from './rows';
 import { createAccountChip, createProgress, updateAccountChip, updateProgress } from './widgets';
@@ -267,8 +267,8 @@ export class Sidebar implements UiComponent {
       updateProgress(r.tasksBar, t.completed, t.total, t.inProgress);
       setText(r.tasksText, tr('{0}/{1} tarefas', [t.completed, t.total]));
     }
-    // Ordem escolhida pelo usuário (arrastando as linhas), guardada no navegador.
-    const ordered = orderAgents(g.room.id, g.nodes, (n) => n.agent.sessionId);
+    // Ordem escolhida pelo usuário (arrastando as linhas), com agentes em execução promovidos ao topo.
+    const ordered = orderAgents(g.room.id, g.nodes, (n) => n.agent.sessionId, nodeRunningTier, nodeActiveTime);
     this.shown.set(g.room.id, ordered);
     r.nodes.sync(ordered);
   }

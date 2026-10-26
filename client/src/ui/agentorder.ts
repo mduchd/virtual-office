@@ -6,14 +6,38 @@ const MAX_ROOMS = 50;
 
 type OrderMap = Record<string, string[]>;
 
-/** Ordem guardada primeiro (pela sessão); quem não está nela vai para o fim, na ordem em que veio. */
-export function orderAgents<T>(roomId: string, items: readonly T[], sessionOf: (item: T) => string): T[] {
+/**
+ * Ordem dos agentes:
+ * 1. Các agent đang chạy (tier 0: waiting, tier 1: working/shell) luôn được ưu tiên đẩy lên đầu danh sách.
+ * 2. Trong cùng một tier: ưu tiên theo thứ tự kéo thả đã lưu trong trình duyệt.
+ * 3. Nếu chưa kéo thả: agent nào mới hoạt động gần đây hơn (activeTime) sẽ lên trước.
+ * 4. Mặc định giữ thứ tự ban đầu (arrival / index).
+ */
+export function orderAgents<T>(
+  roomId: string,
+  items: readonly T[],
+  sessionOf: (item: T) => string,
+  tierOf?: (item: T) => number,
+  activeTimeOf?: (item: T) => number,
+): T[] {
   const saved = loadOrder()[roomId];
-  if (!saved?.length) return items.slice();
-  const rank = new Map(saved.map((sid, i) => [sid, i]));
+  const rank = saved?.length ? new Map(saved.map((sid, i) => [sid, i])) : null;
   return items
-    .map((item, i) => ({ item, i, r: rank.get(sessionOf(item)) }))
-    .sort((x, y) => (x.r ?? Infinity) - (y.r ?? Infinity) || x.i - y.i)
+    .map((item, i) => ({
+      item,
+      i,
+      tier: tierOf ? tierOf(item) : 0,
+      time: activeTimeOf ? activeTimeOf(item) : 0,
+      r: rank ? rank.get(sessionOf(item)) : undefined,
+    }))
+    .sort((x, y) => {
+      if (x.tier !== y.tier) return x.tier - y.tier;
+      if (x.r !== undefined && y.r !== undefined) return x.r - y.r;
+      if (x.r !== undefined) return -1;
+      if (y.r !== undefined) return 1;
+      if (x.tier <= 1 && x.time !== y.time) return y.time - x.time;
+      return x.i - y.i;
+    })
     .map((x) => x.item);
 }
 

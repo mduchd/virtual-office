@@ -6,7 +6,7 @@ import type { AgentInfo } from '../../../shared/types';
 import type { UiContext } from './context';
 import { moveAgent, orderAgents } from './agentorder';
 import { h, KeyedList, setAttr, setHidden, setText, setTitle } from './dom';
-import { activityFallback } from './model';
+import { activityFallback, agentRunningTier } from './model';
 import { ptyControllable, stopAgent } from './ptyapi';
 import { createStatusDot, updateStatusDot } from './widgets';
 import { tr } from '../../../shared/i18n';
@@ -102,7 +102,7 @@ ${doing}` : ''}${live ? tr(' (interativo)') : ''}`);
           .filter((a) => a.kind === 'main' && a.roomId === agent.roomId && a.status !== 'offline' && !a.id.startsWith('demo:'))
           .sort((x, y) => x.startedAt - y.startedAt || x.id.localeCompare(y.id))
       : [];
-    this.peers = agent ? orderAgents(agent.roomId, peers, (a) => a.sessionId) : [];
+    this.peers = agent ? orderAgents(agent.roomId, peers, (a) => a.sessionId, agentRunningTier, (a) => a.statusSince || a.startedAt || 0) : [];
     // Uma aba só não ajuda: some.
     setHidden(this.el, this.peers.length < 2);
     this.list.sync(this.peers.length < 2 ? [] : this.peers);

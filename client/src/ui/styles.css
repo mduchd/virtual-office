@@ -2849,6 +2849,12 @@
   font: 700 15px/1.2 var(--font-ui);
 }
 
+.ui-popover__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .ui-set-group {
   padding: 6px 16px 8px;
 }
@@ -3048,12 +3054,31 @@
   border: 1px solid var(--ui-line);
 }
 
+.ui-seg--cols-2 {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ui-seg--cols-3 {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .ui-seg__opt {
-  height: 26px;
+  min-height: 26px;
+  height: auto;
+  padding: 3px 6px;
   border-radius: 6px;
   text-align: center;
   font-size: 12px;
+  line-height: 1.2;
   color: var(--ui-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
     background-color 0.15s,
     color 0.15s;
@@ -3502,17 +3527,20 @@
 }
 
 .ui-splash__text {
-  color: var(--ui-muted);
-  font-size: 13.5px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 500;
   text-align: center;
-  max-width: 36ch;
+  max-width: 38ch;
+  line-height: 1.5;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .ui-splash__bar {
   display: block;
   width: 96px;
   height: 8px;
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 5px, transparent 5px 6px);
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 5px, transparent 5px 6px);
   position: relative;
   overflow: hidden;
 }
@@ -4092,7 +4120,7 @@
     min-width: 128px;
   }
 
-  .ui-topbar:has(.ui-usage-card:nth-child(4)) .ui-topbar__right .ui-btn-group:first-child .ui-icon-btn:not(:first-child) {
+  .ui-topbar:has(.ui-usage-card:nth-child(4)) .ui-topbar__right .ui-btn-group--view .ui-icon-btn:not(:first-child) {
     display: none;
   }
 }
@@ -4156,7 +4184,7 @@
   }
 
   /* Zoom continua na rolagem do mouse e nos atalhos + / −. */
-  .ui-topbar__right .ui-btn-group:first-child .ui-icon-btn:not(:first-child) {
+  .ui-topbar__right .ui-btn-group--view .ui-icon-btn:not(:first-child) {
     display: none;
   }
 }
@@ -6838,7 +6866,7 @@ html.is-replay #world {
 
 .ui-snd__chips {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
 
@@ -6849,6 +6877,13 @@ html.is-replay #world {
   background: rgba(0, 0, 0, 0.2);
   font-size: 12px;
   color: var(--ui-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
     background-color 0.15s,
     color 0.15s,
@@ -7664,7 +7699,7 @@ html.is-replay #world {
 
 /* Entre o celular e o tablet a barra superior fica apertada com o botão "Meu dia": a visão geral segue no atalho O. */
 @media (min-width: 601px) and (max-width: 760px) {
-  .ui-topbar__right .ui-btn-group:first-child {
+  .ui-topbar__right .ui-btn-group--view {
     display: none;
   }
 }

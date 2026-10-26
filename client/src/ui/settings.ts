@@ -1,5 +1,5 @@
-// Configurações (popover): opções do escritório, avisos, modo demonstração e Sobre (versão).
 import { access, remoteLogout } from '../net/access';
+import type { RemotePanel } from './remote-panel';
 import type { UiComponent, UiContext } from './context';
 import { h, iconButton, setAttr, setHidden, setText } from './dom';
 import { ICONS } from './icons';
@@ -55,8 +55,9 @@ function switchRow(label: string, hintText: string, onToggle: () => void): Switc
   return { row, btn, hint };
 }
 
-function segmented<T extends string>(label: string, options: readonly [T, string][], onPick: (v: T) => void): { row: HTMLElement; set(v: T): void } {
-  const group = h('div', { class: 'ui-seg', role: 'radiogroup', attrs: { 'aria-label': label } });
+function segmented<T extends string>(label: string, options: readonly [T, string][], onPick: (v: T) => void, cols?: number): { row: HTMLElement; set(v: T): void } {
+  const cls = cols ? `ui-seg ui-seg--cols-${cols}` : options.length > 4 ? 'ui-seg ui-seg--cols-3' : 'ui-seg';
+  const group = h('div', { class: cls, role: 'radiogroup', attrs: { 'aria-label': label } });
   const buttons = options.map(([value, text]) => {
     const b = h('button', { class: 'ui-seg__opt', type: 'button', role: 'radio', text, attrs: { 'aria-checked': 'false' } });
     b.addEventListener('click', () => onPick(value));
@@ -97,8 +98,9 @@ export class SettingsPopover implements UiComponent {
   private language: ReturnType<typeof segmented<LanguageChoice>>;
   private soundGroup: SoundSettingsGroup;
   private demoGroup: HTMLElement;
-  /** Só na página do celular (porta remota com login): sair deste aparelho. */
   private remoteGroup: HTMLElement;
+  private remoteConnectRow: HTMLElement;
+  private remoteLogoutRow: HTMLElement;
   private logoutBtn: HTMLButtonElement;
   private about: AboutGroup;
   private demoBusy = false;
@@ -108,6 +110,7 @@ export class SettingsPopover implements UiComponent {
     private ctx: UiContext,
     private notifier: Notifier,
     sound: SoundControl,
+    private remotePanel?: RemotePanel,
   ) {
     const sw = (key: BoolPref | 'demo', label: string, hint: string, onToggle: () => void) => {
       const r = switchRow(label, hint, onToggle);
@@ -156,6 +159,7 @@ export class SettingsPopover implements UiComponent {
       tr('Tema do escritório'),
       [['auto', tr('Automático')], ['none', tr('Nenhum')], ['christmas', tr('Natal')], ['halloween', tr('Halloween')]],
       (v) => ctx.updatePrefs({ theme: v }),
+      2,
     );
     this.theme.row.append(h('span', { class: 'ui-set__hint', text: tr('Automático: Halloween em outubro e Natal de 1º de novembro a 26 de dezembro; no resto do ano, o visual original. Nenhum: sempre o original.') }));
     this.soundGroup = new SoundSettingsGroup(ctx, sound);
@@ -165,6 +169,7 @@ export class SettingsPopover implements UiComponent {
       tr('Idioma da interface'),
       [['auto', tr('Automático')], ...LOCALES.map((l): [LanguageChoice, string] => [l.id, l.name])],
       (v) => pickLanguage(v),
+      3,
     );
     this.language.row.append(
       h('span', { class: 'ui-set__hint', text: tr('Os textos das atividades vêm do servidor: seguem HABBLAUD_LANG ou o idioma do sistema onde o Habblaud roda (o inglês, só com HABBLAUD_LANG=en).') }),
@@ -178,30 +183,60 @@ export class SettingsPopover implements UiComponent {
     );
 
     this.logoutBtn = h('button', { class: 'ui-btn', type: 'button', text: tr('Sair'), on: { click: () => void this.logout() } }) as HTMLButtonElement;
-    this.remoteGroup = h(
+    this.remoteLogoutRow = h(
       'div',
-      { class: 'ui-set-group', hidden: true },
-      h('h3', { text: tr('Acesso pelo celular') }),
+      { class: 'ui-set' },
       h(
         'div',
-        { class: 'ui-set' },
-        h(
-          'div',
-          { class: 'ui-set__text' },
-          h('span', { class: 'ui-set__label', text: tr('Sair deste aparelho') }),
-          h('span', { class: 'ui-set__hint', text: tr('Encerra o login aqui (uma cópia do cookie também deixa de valer). Para voltar, entre com usuário e senha.') }),
-        ),
-        this.logoutBtn,
+        { class: 'ui-set__text' },
+        h('span', { class: 'ui-set__label', text: tr('Sair deste aparelho') }),
+        h('span', { class: 'ui-set__hint', text: tr('Encerra o login aqui (uma cópia do cookie também deixa de valer). Para voltar, entre com usuário e senha.') }),
       ),
+      this.logoutBtn,
+    );
+
+    const openRemote = () => {
+      const anchor = this.anchor ?? this.el;
+      this.hide();
+      this.remotePanel?.toggle(anchor);
+    };
+
+    this.remoteConnectRow = h(
+      'div',
+      { class: 'ui-set' },
+      h(
+        'div',
+        { class: 'ui-set__text' },
+        h('span', { class: 'ui-set__label', text: tr('Acesso pelo celular (QR Code / Controle remoto)') }),
+        h('span', { class: 'ui-set__hint', text: tr('Ligue o túnel para abrir o escritório e controlar os agentes no celular (4G, 5G ou Wi-Fi em qualquer lugar).') }),
+      ),
+      h('button', { class: 'ui-btn', type: 'button', text: tr('Ligar acesso remoto'), on: { click: openRemote } }),
+    );
+
+    this.remoteGroup = h(
+      'div',
+      { class: 'ui-set-group' },
+      h('h3', { text: tr('Acesso pelo celular') }),
+      this.remoteConnectRow,
+      this.remoteLogoutRow,
     );
 
     this.about = new AboutGroup(ctx);
 
+    const help = iconButton(
+      ICONS.help,
+      tr('Ajuda (?)'),
+      () => {
+        this.hide();
+        ctx.openHelp();
+      },
+      'ui-icon-btn--sm',
+    );
     const close = iconButton(ICONS.close, tr('Fechar configurações'), () => this.hide(), 'ui-icon-btn--sm');
     this.el = h(
       'div',
       { class: 'ui-popover ui-settings', role: 'dialog', tabIndex: -1, attrs: { 'aria-label': tr('Configurações'), id: 'ui-settings', popover: 'auto' } },
-      h('div', { class: 'ui-popover__head' }, h('h2', { text: tr('Configurações') }), close),
+      h('div', { class: 'ui-popover__head' }, h('h2', { text: tr('Configurações') }), h('div', { class: 'ui-popover__head-actions' }, help, close)),
       h('div', { class: 'ui-set-group' }, h('h3', { text: tr('Aparência') }), this.uiTheme.row, this.theme.row),
       h(
         'div',
@@ -295,7 +330,8 @@ export class SettingsPopover implements UiComponent {
     this.language.set(savedLanguage());
     this.soundGroup.render();
     setHidden(this.demoGroup, this.ctx.store.mock || access().remote);
-    setHidden(this.remoteGroup, !access().remote);
+    setHidden(this.remoteConnectRow, access().remote);
+    setHidden(this.remoteLogoutRow, !access().remote);
     this.about.render();
 
     const notif = this.switches.get('browserNotifications')!;
